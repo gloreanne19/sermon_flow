@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import pptxgen from "pptxgenjs";
 import { Download, Play, FileText, CheckCircle2, Loader2, Sparkles, RefreshCw } from 'lucide-react';
+import localBibleData from './bibleData.json';
 
 const DEFAULT_SERMON = `Text: 1 John 1:5–7
 Subject: Love That Walks in the Light
@@ -127,8 +128,18 @@ function App() {
   const fetchVerseData = async (ref) => {
     if (bibleCache[ref]) return;
 
+    // First check local JSON file for faster loading/fallback
+    if (localBibleData[ref]) {
+      setBibleCache(prev => ({
+        ...prev,
+        [ref]: localBibleData[ref]
+      }));
+      return;
+    }
+
     try {
-      const resp = await fetch(`http://localhost:3001/api/bible?ref=${encodeURIComponent(ref)}`);
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const resp = await fetch(`${apiUrl}/api/bible?ref=${encodeURIComponent(ref)}`);
       const data = await resp.json();
       if (data.KJV && data.MBBTAG) {
         setBibleCache(prev => ({
