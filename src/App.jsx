@@ -3,63 +3,35 @@ import pptxgen from "pptxgenjs";
 import { Download, Play, FileText, CheckCircle2, Loader2, Sparkles, RefreshCw } from 'lucide-react';
 import localBibleData from './bibleData.json';
 
-const DEFAULT_SERMON = `Text: 1 John 1:5–7
-Subject: Love That Walks in the Light
+const DEFAULT_SERMON = `Text: Genesis 1:1, John 3:16
+Subject: Welcome to Sermon Flow BBC
 
-Introduction
+How to use this tool:
 
-True fellowship with God always produces love for one another.
+1. Setup Your Title Slide
+    - Use "Text:" for your Bible references.
+    - Use "Subject:" for your sermon title.
 
-I. GOD IS LIGHT (v. 5)
+2. Creating Content Slides
+    - Every line you type becomes a new slide.
+    - Use headers like "Introduction" or "Conclusion".
 
-    A. Light represents:
-        1. Truth
-        2. Purity
-        3. Holiness
+3. Automatic Bible Verses
+    - Just type a reference and it will appear:
+    • Psalm 23:1
+    • Matthew 5:3-5
 
-    B. Darkness represents:
-        1. Sin
-        2. Error
-        3. Deception
-        4. Separation from God
+4. Smart Indention
+    - Indented lines keep the header at the top.
+    
+    A. This is a sub-point
+    B. The header "Smart Indention" stays visible!
 
-    Supporting Scriptures:
-        • Psalm 27:1
-        • James 1:17
+5. Theme Customization (Right Side)
+    - Click the THEME tab to change colors and fonts.
 
-II. YOU CANNOT WALK IN DARKNESS AND CLAIM FELLOWSHIP WITH GOD (v. 6)
-
-        • John 8:12
-
-III. WALKING IN THE LIGHT BRINGS FELLOWSHIP AND CLEANSING (v. 7)
-
-    Two incredible promises when we walk in the light:
-
-    1. We have fellowship with one another.
-
-    2. The blood of Jesus cleanses us from all sin.
-
-        Supporting Scripture:
-        • Hebrews 9:14
-
-        A. Judas called it “innocent blood.”
-            • Matthew 27:4
-
-        B. Peter called it “precious blood.”
-            • 1 Peter 1:19
-
-        C. Paul called it “redeeming blood.”
-            • Ephesians 1:7
-
-        D. John called it “cleansing blood.”
-
-Conclusion
-
-What does it look like to walk in the light?
-
-    • Be honest with God
-    • Be honest with others
-    • Be honest with yourself`;
+6. Export as PowerPoint
+    - Click EXPORT PPTX to download your presentation.`;
 
 // Initial Bible cache from local storage
 const getInitialCache = () => {
