@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import pptxgen from "pptxgenjs";
 import { Download, Play, FileText, CheckCircle2, Loader2, Sparkles, RefreshCw } from 'lucide-react';
 import localBibleData from './bibleData.json';
@@ -46,6 +46,8 @@ function App() {
   const [status, setStatus] = useState('');
   const [bibleCache, setBibleCache] = useState(getInitialCache());
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const screenRef = useRef(null);
+  const projectorWindowRef = useRef(null);
   const [isBlackout, setIsBlackout] = useState(false);
   const [activeTab, setActiveTab] = useState('script'); // 'script' or 'theme'
   const [theme, setTheme] = useState({
@@ -67,6 +69,19 @@ function App() {
   useEffect(() => {
     localStorage.setItem('bible_cache', JSON.stringify(bibleCache));
   }, [bibleCache]);
+
+  // Broadcast channel for sync
+  useEffect(() => {
+    const channel = new BroadcastChannel('sermon_flow_sync');
+    channel.postMessage({
+      type: 'update',
+      slide: slides[activeSlideIndex],
+      theme,
+      isBlackout,
+      index: activeSlideIndex
+    });
+    return () => channel.close();
+  }, [activeSlideIndex, slides, theme, isBlackout]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -91,6 +106,150 @@ function App() {
     localStorage.removeItem('bible_cache');
     setStatus('Cache cleared! Re-fetching verses...');
     setTimeout(() => setStatus(''), 3000);
+  };
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      screenRef.current?.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  const openProjectorWindow = () => {
+    if (projectorWindowRef.current && !projectorWindowRef.current.closed) {
+      projectorWindowRef.current.focus();
+      return;
+    }
+
+    const width = 1280;
+    const height = 720;
+    const left = window.screen.width; // Try to open on the second monitor
+    const top = 0;
+
+    const projectorWindow = window.open(
+      '',
+      'SermonFlowProjector',
+      `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no`
+    );
+
+    if (projectorWindow) {
+      projectorWindow.document.title = "Sermon Flow - Projector";
+      projectorWindow.document.body.style.margin = '0';
+      projectorWindow.document.body.style.padding = '0';
+      projectorWindow.document.body.style.overflow = 'hidden';
+      projectorWindow.document.body.style.backgroundColor = '#000';
+      projectorWindow.document.body.innerHTML = '<div id="projector-root"></div>';
+
+      // Inject Styles
+      const style = projectorWindow.document.createElement('style');
+      style.textContent = `
+        body { font-family: sans-serif; }
+        #projector-root { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .slide-content { text-align: center; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 5%; box-sizing: border-box; z-index: 1; transition: opacity 0.5s ease; }
+        .overlay { position: absolute; inset: 0; z-index: 0; }
+        .background { position: absolute; inset: 0; background-size: cover; background-position: center; z-index: -1; }
+      `;
+      projectorWindow.document.head.appendChild(style);
+
+      projectorWindowRef.current = projectorWindow;
+
+      // Handle Sync
+      const channel = new BroadcastChannel('sermon_flow_sync');
+      
+      const updateContent = (data) => {
+        const root = projectorWindow.document.getElementById('projector-root');
+        if (!root) return;
+        
+        if (data.isBlackout) {
+          root.innerHTML = '';
+          root.style.backgroundColor = '#000';
+          return;
+        }
+
+        const slide = data.slide;
+        const theme = data.theme;
+        if (!slide) return;
+
+        // Dynamic Styles for Font Sizes
+        const getFontSize = (text, type) => {
+          let baseSize = 40;
+          const length = text?.length || 0;
+          if (type === 'title') baseSize = length > 40 ? 35 : 48;
+          else if (type === 'subtitle') baseSize = 22;
+          else if (type === 'content') {
+            if (length < 30) baseSize = 50;
+            else if (length < 60) baseSize = 38;
+            else if (length < 120) baseSize = 28;
+            else if (length < 200) baseSize = 22;
+            else baseSize = 18;
+          }
+          else if (type === 'scripture') {
+            if (length < 100) baseSize = 30;
+            else if (length < 200) baseSize = 22;
+            else if (length < 400) baseSize = 18;
+            else baseSize = 14;
+          }
+          return `${baseSize * theme.sizeMultiplier * 0.1}vw`;
+        };
+
+        let contentHtml = '';
+        const textTransform = theme.uppercase ? 'uppercase' : 'none';
+        const fontWeight = theme.bold ? '900' : '400';
+        const fontStyle = theme.italic ? 'italic' : 'normal';
+
+        if (slide.type === 'title') {
+          contentHtml = `
+            <div style="text-align:center; font-weight:${fontWeight}; font-style:${fontStyle}; text-transform:${textTransform}; color:${theme.titleColor};">
+              <div style="font-size:${getFontSize(slide.title, 'title')}; line-height:1.1; margin-bottom:1vw;">${slide.title}</div>
+              <div style="font-size:${getFontSize(slide.subtitle, 'subtitle')}; color:${theme.subtitleColor}; font-weight:600;">${slide.subtitle || ''}</div>
+            </div>
+          `;
+        } else if (slide.type === 'content') {
+            contentHtml = `
+            <div style="text-align:center; text-transform:${textTransform}; font-weight:${fontWeight}; font-style:${fontStyle}; color:${theme.text}; width:100%;">
+              ${slide.mainTitle ? `<div style="font-size:1.8vw; color:${theme.subtitleColor}; margin-bottom:2vw; font-weight:700;">${slide.mainTitle.toUpperCase()}</div>` : ''}
+              <div style="font-size:${getFontSize(slide.title, 'content')}; line-height:1.2;">${slide.title}</div>
+            </div>
+          `;
+        } else if (slide.type === 'scripture') {
+          contentHtml = `
+            <div style="text-align:center; text-transform:${textTransform}; font-weight:${fontWeight}; font-style:${fontStyle}; color:${theme.text}; width:100%;">
+              <div style="font-size:2vw; color:${theme.accent}; margin-bottom:1.5vw; font-weight:800;">${slide.reference}</div>
+              <div style="font-size:${getFontSize(slide.text, 'scripture')}; line-height:1.2;">"${slide.text}"</div>
+            </div>
+          `;
+        }
+
+        root.innerHTML = `
+          <div class="background" style="background-color:${theme.bg}; background-image:${theme.bgImage ? `url(${theme.bgImage})` : 'none'};"></div>
+          <div class="overlay" style="background-color:${theme.card}; opacity:${theme.bgImage ? theme.overlayOpacity : 1};"></div>
+          <div class="slide-content" style="font-family:${theme.fontFace};">
+            ${contentHtml}
+          </div>
+        `;
+      };
+
+      channel.onmessage = (event) => {
+        if (event.data.type === 'update') {
+          updateContent(event.data);
+        }
+      };
+
+      // Initial Sync
+      updateContent({
+        slide: slides[activeSlideIndex],
+        theme,
+        isBlackout,
+        index: activeSlideIndex
+      });
+
+      projectorWindow.onbeforeunload = () => {
+        channel.close();
+      };
+    }
   };
 
   useEffect(() => {
@@ -580,13 +739,35 @@ function App() {
         </section>
 
         <section className="live-projection-area">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div className="section-label" style={{ margin: 0 }}><Play size={14} /> LIVE PROJECTION</div>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button 
+                className="btn" 
+                onClick={openProjectorWindow}
+                style={{ padding: '0.4rem 1rem', fontSize: '0.7rem', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                <Download size={12} style={{ transform: 'rotate(-90deg)' }} /> POP-OUT
+              </button>
+              <button 
+                className="btn" 
+                onClick={toggleFullscreen}
+                style={{ padding: '0.4rem 1rem', fontSize: '0.7rem', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                <Play size={12} fill="currentColor" /> FULLSCREEN
+              </button>
+            </div>
+          </div>
           {slides[activeSlideIndex] && (
-            <div className="projection-screen" style={{
+            <div className="projection-screen" ref={screenRef} style={{
               visibility: isBlackout ? 'hidden' : 'visible',
               backgroundColor: theme.bg,
               backgroundImage: theme.bgImage ? `url(${theme.bgImage})` : 'none',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
+              // Add a special behavior for fullscreen mode via pseudo-class is usually better, but inline works for basics
+              display: 'flex',
+              flexDirection: 'column'
             }}>
               {/* Semi-transparent overlay / Slide Card */}
               <div style={{
