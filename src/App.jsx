@@ -110,17 +110,36 @@ function App() {
     }
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const resp = await fetch(`${apiUrl}/api/bible?ref=${encodeURIComponent(ref)}`);
+      // Logic: 
+      // 1. Use VITE_API_URL if provided
+      // 2. If locally developing and no URL, try localhost:3001
+      // 3. Otherwise, use Netlify Functions path
+      const apiUrl = import.meta.env.VITE_API_URL;
+      const endpoint = apiUrl 
+        ? `${apiUrl}/api/bible` 
+        : (import.meta.env.DEV ? 'http://localhost:3001/api/bible' : '/.netlify/functions/bible');
+      
+      console.log(`Fetching from: ${endpoint}?ref=${ref}`);
+      const resp = await fetch(`${endpoint}?ref=${encodeURIComponent(ref)}`);
+      
+      if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
+      
       const data = await resp.json();
       if (data.KJV && data.MBBTAG) {
         setBibleCache(prev => ({
           ...prev,
           [ref]: data
         }));
+      } else {
+        throw new Error("Invalid API response format");
       }
     } catch (e) {
       console.error("Failed to fetch verse", ref, e);
+      // Mark as error in cache to prevent infinite loading state
+      setBibleCache(prev => ({
+        ...prev,
+        [ref]: { error: true, message: e.message }
+      }));
     }
   };
 
@@ -227,34 +246,41 @@ function App() {
 
       if (ref) {
         const data = bibleCache[ref];
-        if (!data) fetchVerseData(ref);
+        if (!data) {
+          fetchVerseData(ref);
+          currentSlides.push({ type: 'scripture', context: parentContext, reference: ref, version: 'English (KJV)', text: "Loading..." });
+        } else if (data.error) {
+          currentSlides.push({ 
+            type: 'scripture', 
+            context: parentContext, 
+            reference: ref, 
+            version: 'Error', 
+            text: "Verse not found or API is offline. Ensure your Bible API server is running." 
+          });
+        } else {
+          // Normalize to handle both Array (from API) and String (from local JSON)
+          const kjvArray = Array.isArray(data.KJV) ? data.KJV : [{ num: '', text: data.KJV }];
+          const mbbArray = Array.isArray(data.MBBTAG) ? data.MBBTAG : (data.MBBTAG ? [{ num: '', text: data.MBBTAG }] : []);
 
-        if (data && Array.isArray(data.KJV)) {
-          // 1. All English block first
-          data.KJV.forEach((verse) => {
+          kjvArray.forEach((verse) => {
             currentSlides.push({
               type: 'scripture',
               context: parentContext,
-              reference: `${ref} (v.${verse.num})`,
+              reference: verse.num ? `${ref} (v.${verse.num})` : ref,
               version: 'English (KJV)',
               text: verse.text
             });
           });
 
-          // 2. All Tagalog block second
-          if (Array.isArray(data.MBBTAG)) {
-            data.MBBTAG.forEach((verse) => {
-              currentSlides.push({
-                type: 'scripture',
-                context: parentContext,
-                reference: `${ref} (v.${verse.num})`,
-                version: 'Tagalog (MBBTAG)',
-                text: verse.text
-              });
+          mbbArray.forEach((verse) => {
+            currentSlides.push({
+              type: 'scripture',
+              context: parentContext,
+              reference: verse.num ? `${ref} (v.${verse.num})` : ref,
+              version: 'Tagalog (MBBTAG)',
+              text: verse.text
             });
-          }
-        } else {
-          currentSlides.push({ type: 'scripture', context: parentContext, reference: ref, version: 'English (KJV)', text: "Loading..." });
+          });
         }
       } else {
         // 4. Content Slide
