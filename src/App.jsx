@@ -115,15 +115,15 @@ function App() {
       // 2. If locally developing and no URL, try localhost:3001
       // 3. Otherwise, use Netlify Functions path
       const apiUrl = import.meta.env.VITE_API_URL;
-      const endpoint = apiUrl 
-        ? `${apiUrl}/api/bible` 
+      const endpoint = apiUrl
+        ? `${apiUrl}/api/bible`
         : (import.meta.env.DEV ? 'http://localhost:3001/api/bible' : '/.netlify/functions/bible');
-      
+
       console.log(`Fetching from: ${endpoint}?ref=${ref}`);
       const resp = await fetch(`${endpoint}?ref=${encodeURIComponent(ref)}`);
-      
+
       if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
-      
+
       const data = await resp.json();
       if (data.KJV && data.MBBTAG) {
         setBibleCache(prev => ({
@@ -250,12 +250,12 @@ function App() {
           fetchVerseData(ref);
           currentSlides.push({ type: 'scripture', context: parentContext, reference: ref, version: 'English (KJV)', text: "Loading..." });
         } else if (data.error) {
-          currentSlides.push({ 
-            type: 'scripture', 
-            context: parentContext, 
-            reference: ref, 
-            version: 'Error', 
-            text: "Verse not found or API is offline. Ensure your Bible API server is running." 
+          currentSlides.push({
+            type: 'scripture',
+            context: parentContext,
+            reference: ref,
+            version: 'Error',
+            text: "Verse not found or API is offline. Ensure your Bible API server is running."
           });
         } else {
           // Normalize to handle both Array (from API) and String (from local JSON)
@@ -395,7 +395,10 @@ function App() {
   return (
     <div className="app-container">
       <header>
-        <h1><Sparkles className="text-primary" size={24} /> SERMON FLOW <span>BBC</span></h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <img src="/church-logo.png" alt="Church Logo" style={{ height: '40px', width: 'auto' }} />
+          <h1>SERMON FLOW <span>BBC</span></h1>
+        </div>
         <div style={{ textAlign: 'right' }}>
           <p>PRESENTATION CONSOLE</p>
           <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 'bold', letterSpacing: '0.05em' }}>• {slides.length} SLIDES</div>
@@ -475,7 +478,7 @@ function App() {
               </>
             ) : (
               <div className="theme-editor" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <div className="section-label"><Sparkles size={14} /> Design Customization</div>
+                <div className="section-label">Design Customization</div>
 
                 <div className="theme-field">
                   <label style={{ fontSize: '0.8rem', color: '#888', display: 'block', marginBottom: '0.5rem' }}>Background Image</label>
