@@ -187,10 +187,10 @@ function App() {
             else baseSize = 18;
           }
           else if (type === 'scripture') {
-            if (length < 100) baseSize = 30;
-            else if (length < 200) baseSize = 22;
-            else if (length < 400) baseSize = 18;
-            else baseSize = 14;
+            if (length < 100) baseSize = 44;
+            else if (length < 200) baseSize = 38;
+            else if (length < 400) baseSize = 30;
+            else baseSize = 24;
           }
           return `${baseSize * theme.sizeMultiplier * 0.1}vw`;
         };
@@ -327,10 +327,10 @@ function App() {
       else baseSize = 18;
     }
     else if (type === 'scripture') {
-      if (length < 100) baseSize = 30;
-      else if (length < 200) baseSize = 22;
-      else if (length < 400) baseSize = 18;
-      else baseSize = 14;
+      if (length < 100) baseSize = 44;
+      else if (length < 200) baseSize = 38;
+      else if (length < 400) baseSize = 30;
+      else baseSize = 24;
     }
 
     const scaled = baseSize * theme.sizeMultiplier;
@@ -519,13 +519,13 @@ function App() {
         }
         else if (slideData.type === 'scripture') {
           slide.addText(processText(slideData.reference), {
-            x: 0.5, y: 0.4, w: 9, h: 0.6,
-            fontSize: 22 * theme.sizeMultiplier, fontFace: theme.fontFace, bold: true, color: theme.accent.replace('#', ''),
-            align: "center", shrinkText: true
+            x: 0.25, y: 0.25, w: 9.5, h: 0.75,
+            fontSize: 32 * theme.sizeMultiplier, fontFace: theme.fontFace, bold: true, color: theme.accent.replace('#', ''),
+            align: "center", valign: "middle", shrinkText: true
           });
 
           slide.addText(processText(slideData.text), {
-            x: 0.25, y: 0.6, w: 9.5, h: 4.5,
+            x: 0.25, y: 1.0, w: 9.5, h: 4.3,
             fontSize: getDynamicFontSize(slideData.text, 'scripture', true),
             fontFace: theme.fontFace,
             bold: theme.bold,
