@@ -514,7 +514,6 @@ function App() {
             color: theme.text.replace('#', ''),
             align: "center",
             valign: "middle",
-            lineSpacing: 8,
             shrinkText: true
           });
         }
@@ -534,7 +533,6 @@ function App() {
             color: theme.text.replace('#', ''),
             align: "center",
             valign: "middle",
-            lineSpacing: 5,
             shrinkText: true
           });
         }
