@@ -280,7 +280,7 @@ function App() {
       const apiUrl = import.meta.env.VITE_API_URL;
       const endpoint = apiUrl
         ? `${apiUrl}/api/bible`
-        : (import.meta.env.DEV ? 'http://localhost:3001/api/bible' : '/.netlify/functions/bible');
+        : (import.meta.env.DEV ? 'http://localhost:3001/api/bible' : '/api/bible');
 
       console.log(`Fetching from: ${endpoint}?ref=${ref}`);
       const resp = await fetch(`${endpoint}?ref=${encodeURIComponent(ref)}`);
