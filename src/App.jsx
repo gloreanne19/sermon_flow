@@ -187,10 +187,12 @@ function App() {
             else baseSize = 18;
           }
           else if (type === 'scripture') {
-            if (length < 100) baseSize = 44;
-            else if (length < 200) baseSize = 38;
-            else if (length < 400) baseSize = 30;
-            else baseSize = 24;
+            if (length < 80) baseSize = 40;
+            else if (length < 130) baseSize = 34;
+            else if (length < 180) baseSize = 28;
+            else if (length < 250) baseSize = 24;
+            else if (length < 350) baseSize = 20;
+            else baseSize = 16;
           }
           return `${baseSize * theme.sizeMultiplier * 0.1}vw`;
         };
@@ -216,9 +218,11 @@ function App() {
           `;
         } else if (slide.type === 'scripture') {
           contentHtml = `
-            <div style="text-align:center; text-transform:${textTransform}; font-weight:${fontWeight}; font-style:${fontStyle}; color:${theme.text}; width:100%;">
-              <div style="font-size:2vw; color:${theme.accent}; margin-bottom:1.5vw; font-weight:800;">${slide.reference}</div>
-              <div style="font-size:${getFontSize(slide.text, 'scripture')}; line-height:1.2;">"${slide.text}"</div>
+            <div style="position: absolute; top: 3%; left: 0; width: 100%; text-align: center; text-transform: ${textTransform}; font-weight: ${fontWeight}; font-style: ${fontStyle};">
+              <div style="font-size: 2vw; color: ${theme.accent}; font-weight: 800;">${slide.reference}</div>
+            </div>
+            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; text-align: center; text-transform: ${textTransform}; font-weight: ${fontWeight}; font-style: ${fontStyle}; color: ${theme.text}; padding: 8% 5% 2% 5%; box-sizing: border-box;">
+              <div style="font-size: ${getFontSize(slide.text, 'scripture')}; line-height: 1.2;">"${slide.text}"</div>
             </div>
           `;
         }
@@ -327,10 +331,12 @@ function App() {
       else baseSize = 18;
     }
     else if (type === 'scripture') {
-      if (length < 100) baseSize = 44;
-      else if (length < 200) baseSize = 38;
-      else if (length < 400) baseSize = 30;
-      else baseSize = 24;
+      if (length < 80) baseSize = 40;
+      else if (length < 130) baseSize = 34;
+      else if (length < 180) baseSize = 28;
+      else if (length < 250) baseSize = 24;
+      else if (length < 350) baseSize = 20;
+      else baseSize = 16;
     }
 
     const scaled = baseSize * theme.sizeMultiplier;
@@ -519,9 +525,9 @@ function App() {
         }
         else if (slideData.type === 'scripture') {
           slide.addText(processText(slideData.reference), {
-            x: 0.25, y: 0.25, w: 9.5, h: 0.75,
-            fontSize: 32 * theme.sizeMultiplier, fontFace: theme.fontFace, bold: true, color: theme.accent.replace('#', ''),
-            align: "center", valign: "middle", shrinkText: true
+            x: 0.25, y: 0.2, w: 9.5, h: 0.8,
+            fontSize: 28 * theme.sizeMultiplier, fontFace: theme.fontFace, bold: true, color: theme.accent.replace('#', ''),
+            align: "center", valign: "top", shrinkText: true
           });
 
           slide.addText(processText(slideData.text), {
@@ -533,7 +539,8 @@ function App() {
             color: theme.text.replace('#', ''),
             align: "center",
             valign: "middle",
-            shrinkText: true
+            breakLine: false,
+            fit: "shrink"
           });
         }
       }
@@ -812,13 +819,24 @@ function App() {
                   </div>
                 )}
                 {slides[activeSlideIndex].type === 'scripture' && (
-                  <div key={activeSlideIndex} className="slide-anim" style={{ textAlign: 'center', textTransform: theme.uppercase ? 'uppercase' : 'none', fontWeight: theme.bold ? '900' : '400', fontStyle: theme.italic ? 'italic' : 'normal', color: theme.text, width: '100%' }}>
-                    <div style={{ fontSize: '1.8vw', color: theme.accent, marginBottom: '1.5vw', fontWeight: '800' }}>{slides[activeSlideIndex].reference}</div>
-                    <div style={{
-                      fontSize: getDynamicFontSize(slides[activeSlideIndex].text, 'scripture'),
-                      lineHeight: '1.2',
-                    }}>
-                      "{slides[activeSlideIndex].text}"
+                  <div key={activeSlideIndex} className="slide-anim" style={{ 
+                    position: 'relative', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', 
+                    textTransform: theme.uppercase ? 'uppercase' : 'none', fontWeight: theme.bold ? '900' : '400', 
+                    fontStyle: theme.italic ? 'italic' : 'normal', color: theme.text 
+                  }}>
+                    {/* Fixed Reference at the Top */}
+                    <div style={{ flex: '0 0 auto', textAlign: 'center', fontSize: '1.8vw', color: theme.accent, padding: '1vw 0', fontWeight: '800' }}>
+                      {slides[activeSlideIndex].reference}
+                    </div>
+                    {/* Centered Verse Content that shrinks if needed */}
+                    <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', overflow: 'hidden' }}>
+                      <div style={{
+                        fontSize: getDynamicFontSize(slides[activeSlideIndex].text, 'scripture'),
+                        lineHeight: '1.2',
+                        maxWidth: '90%'
+                      }}>
+                        "{slides[activeSlideIndex].text}"
+                      </div>
                     </div>
                   </div>
                 )}
