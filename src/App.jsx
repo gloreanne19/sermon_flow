@@ -187,12 +187,12 @@ function App() {
             else baseSize = 18;
           }
           else if (type === 'scripture') {
-            if (length < 80) baseSize = 40;
-            else if (length < 130) baseSize = 34;
-            else if (length < 180) baseSize = 28;
-            else if (length < 250) baseSize = 24;
-            else if (length < 350) baseSize = 20;
-            else baseSize = 16;
+            if (length < 80) baseSize = 60;
+            else if (length < 130) baseSize = 50;
+            else if (length < 180) baseSize = 42;
+            else if (length < 250) baseSize = 36;
+            else if (length < 350) baseSize = 28;
+            else baseSize = 22;
           }
           return `${baseSize * theme.sizeMultiplier * 0.1}vw`;
         };
@@ -331,12 +331,12 @@ function App() {
       else baseSize = 18;
     }
     else if (type === 'scripture') {
-      if (length < 80) baseSize = 40;
-      else if (length < 130) baseSize = 34;
-      else if (length < 180) baseSize = 28;
-      else if (length < 250) baseSize = 24;
-      else if (length < 350) baseSize = 20;
-      else baseSize = 16;
+      if (length < 80) baseSize = 60;
+      else if (length < 130) baseSize = 50;
+      else if (length < 180) baseSize = 42;
+      else if (length < 250) baseSize = 36;
+      else if (length < 350) baseSize = 28;
+      else baseSize = 22;
     }
 
     const scaled = baseSize * theme.sizeMultiplier;
@@ -532,7 +532,7 @@ function App() {
 
           slide.addText(processText(slideData.text), {
             x: 0.15, y: 1.0, w: 9.7, h: 4.4,
-            fontSize: 150 * theme.sizeMultiplier, // Extremely huge default so PowerPoint auto-shrinks it down to precisely the exact bounding box size
+            fontSize: getDynamicFontSize(slideData.text, 'scripture', true), // Uses an aggressive but realistic base size
             fontFace: theme.fontFace,
             bold: theme.bold,
             italic: theme.italic,
@@ -540,7 +540,6 @@ function App() {
             align: "center",
             valign: "middle",
             margin: 0,
-            breakLine: false,
             fit: "shrink"
           });
         }
