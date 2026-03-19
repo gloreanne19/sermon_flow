@@ -33,14 +33,35 @@ How to use this tool:
 6. Export as PowerPoint
     - Click EXPORT PPTX to download your presentation.`;
 
+const DEFAULT_LYRICS = `How to use Lyrics Mode:
+
+▶ BLANK LINE = NEW SLIDE
+   Separate stanzas or chorus sections with a blank line.
+   Each block of text becomes its own slide.
+
+▶ NO BLANK LINES = ONE LINE PER SLIDE
+   If your song has no blank lines, each
+   individual line gets its own slide.
+
+▶ SECTION LABELS (auto-detected)
+   Start a block with a label like Verse, Chorus,
+   Bridge, Intro, Outro — it appears at the top
+   of the slide in accent color.
+`;
+
+
+
 // Initial Bible cache from local storage
 const getInitialCache = () => {
   const saved = localStorage.getItem('bible_cache');
   return saved ? JSON.parse(saved) : {};
 };
 
+const LABEL_REGEX = /^(verse|chorus|bridge|pre-chorus|tag|outro|intro|refrain|hook|coda)\s*[IVXivx\d]*\.?$/i;
+
 function App() {
   const [sermonText, setSermonText] = useState(DEFAULT_SERMON);
+  const [lyricsText, setLyricsText] = useState(DEFAULT_LYRICS);
   const [slides, setSlides] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [status, setStatus] = useState('');
@@ -49,6 +70,7 @@ function App() {
   const screenRef = useRef(null);
   const projectorWindowRef = useRef(null);
   const [isBlackout, setIsBlackout] = useState(false);
+  const [mode, setMode] = useState('sermon'); // 'sermon' | 'lyrics'
   const [activeTab, setActiveTab] = useState('script'); // 'script' or 'theme'
   const [theme, setTheme] = useState({
     bg: '#111111',
@@ -56,7 +78,7 @@ function App() {
     text: '#1A1A1A',
     titleColor: '#000000',
     subtitleColor: '#666666',
-    accent: '#6366f1',
+    accent: '#f13f48ff',
     fontFace: 'Arial',
     sizeMultiplier: 1.0,
     uppercase: true,
@@ -225,6 +247,24 @@ function App() {
               </div>
             </div>
           `;
+        } else if (slide.type === 'lyric') {
+          const totalChars = (slide.lines || []).join(' ').length;
+          const lineCount = (slide.lines || []).length;
+          let lyricBase;
+          if (lineCount <= 1) lyricBase = totalChars < 60 ? 52 : totalChars < 120 ? 38 : 28;
+          else if (lineCount <= 2) lyricBase = totalChars < 100 ? 44 : totalChars < 180 ? 34 : 26;
+          else if (lineCount <= 4) lyricBase = totalChars < 160 ? 36 : totalChars < 280 ? 28 : 22;
+          else lyricBase = totalChars < 300 ? 28 : 20;
+          const lyricFontSize = `${lyricBase * theme.sizeMultiplier * 0.1}vw`;
+          const linesHtml = (slide.lines || []).map(l => `<div>${l}</div>`).join('');
+          contentHtml = `
+            <div style="width: 100%; height: 100%; display: flex; flex-direction: column; text-transform: ${textTransform}; font-weight: ${fontWeight}; font-style: ${fontStyle};">
+              ${slide.label ? `<div style="flex: 0 0 auto; text-align: center; font-size: 1.5vw; color: ${theme.accent}; font-weight: 800; padding: 0.8vw 0; letter-spacing: 0.1em;">${slide.label}</div>` : ''}
+              <div style="flex: 1 1 auto; display: flex; align-items: center; justify-content: center; text-align: center; color: ${theme.text}; overflow: hidden; padding: 0 4%;">
+                <div style="font-size: ${lyricFontSize}; line-height: 1.4;">${linesHtml}</div>
+              </div>
+            </div>
+          `;
         }
 
         root.innerHTML = `
@@ -257,8 +297,58 @@ function App() {
   };
 
   useEffect(() => {
-    parseSermon();
-  }, [sermonText, bibleCache]);
+    if (mode === 'lyrics') parseLyrics();
+    else parseSermon();
+  }, [sermonText, lyricsText, bibleCache, mode]);
+
+  const parseLyrics = () => {
+    const text = lyricsText.trim();
+    const blocks = text.split(/\n[ \t]*\n/);
+    let currentSlides = [];
+
+    if (blocks.length > 1) {
+      // Blank-line-delimited: each block = one slide
+      blocks.forEach(block => {
+        const lines = block.split('\n').map(l => l.trim()).filter(l => l);
+        if (lines.length === 0) return;
+
+        let label = '';
+        let contentLines = lines;
+        if (LABEL_REGEX.test(lines[0])) {
+          label = lines[0];
+          contentLines = lines.slice(1);
+        }
+        if (contentLines.length === 0) return;
+
+        currentSlides.push({
+          type: 'lyric',
+          label,
+          lines: contentLines,
+          text: contentLines.join('\n')
+        });
+      });
+    } else {
+      // No blank lines: each individual line = one slide
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+      lines.forEach(line => {
+        let label = '';
+        let content = line;
+        if (LABEL_REGEX.test(line)) {
+          label = line;
+          content = '';
+        }
+        if (!content && !label) return;
+        currentSlides.push({
+          type: 'lyric',
+          label,
+          lines: content ? [content] : [],
+          text: content
+        });
+      });
+    }
+
+    setSlides(currentSlides);
+  };
 
   const fetchVerseData = async (ref) => {
     if (bibleCache[ref]) return;
@@ -463,6 +553,18 @@ function App() {
     setSlides(currentSlides);
   };
 
+  const getLyricFontSize = (lines, isPptx = false) => {
+    const totalChars = lines.join(' ').length;
+    const lineCount = lines.length;
+    let base;
+    if (lineCount <= 1) base = totalChars < 60 ? 52 : totalChars < 120 ? 38 : 28;
+    else if (lineCount <= 2) base = totalChars < 100 ? 44 : totalChars < 180 ? 34 : 26;
+    else if (lineCount <= 4) base = totalChars < 160 ? 36 : totalChars < 280 ? 28 : 22;
+    else base = totalChars < 300 ? 28 : 20;
+    const scaled = base * theme.sizeMultiplier;
+    return isPptx ? scaled : `${scaled * 0.1}vw`;
+  };
+
   const generatePPTX = async () => {
     setIsGenerating(true);
     setStatus('Creating PowerPoint...');
@@ -521,6 +623,31 @@ function App() {
             align: "center",
             valign: "middle",
             shrinkText: true
+          });
+        }
+        else if (slideData.type === 'lyric') {
+          const processedLines = slideData.lines.map(l => theme.uppercase ? l.toUpperCase() : l);
+          const lyricText = processedLines.join('\n');
+          const lyricFontSize = getLyricFontSize(slideData.lines, true);
+
+          if (slideData.label) {
+            slide.addText(theme.uppercase ? slideData.label.toUpperCase() : slideData.label, {
+              x: 0.25, y: 0.15, w: 9.5, h: 0.6,
+              fontSize: 18 * theme.sizeMultiplier, fontFace: theme.fontFace,
+              bold: true, color: theme.accent.replace('#', ''),
+              align: 'center', valign: 'middle', shrinkText: true
+            });
+          }
+
+          slide.addText(lyricText, {
+            x: 0.25, y: slideData.label ? 0.85 : 0.25,
+            w: 9.5, h: slideData.label ? 4.6 : 5.125,
+            fontSize: lyricFontSize,
+            fontFace: theme.fontFace,
+            bold: theme.bold, italic: theme.italic,
+            color: theme.text.replace('#', ''),
+            align: 'center', valign: 'middle',
+            shrinkText: true, breakLine: true
           });
         }
         else if (slideData.type === 'scripture') {
@@ -601,11 +728,26 @@ function App() {
             {activeTab === 'script' ? (
               <>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <div className="section-label"><FileText size={14} /> Sermon Script</div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div className="section-label" style={{ margin: 0 }}>
+                      {mode === 'lyrics' ? <span>♪</span> : <FileText size={14} />}
+                      {mode === 'lyrics' ? ' Song Lyrics' : ' Sermon Script'}
+                    </div>
+                    <div style={{ display: 'flex', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--glass-border)', borderRadius: '6px', overflow: 'hidden' }}>
+                      <button
+                        onClick={() => setMode('sermon')}
+                        style={{ padding: '0.25rem 0.75rem', fontSize: '0.65rem', fontWeight: 'bold', letterSpacing: '0.05em', border: 'none', cursor: 'pointer', background: mode === 'sermon' ? 'var(--primary)' : 'transparent', color: '#fff', transition: 'background 0.2s' }}
+                      >SERMON</button>
+                      <button
+                        onClick={() => setMode('lyrics')}
+                        style={{ padding: '0.25rem 0.75rem', fontSize: '0.65rem', fontWeight: 'bold', letterSpacing: '0.05em', border: 'none', cursor: 'pointer', background: mode === 'lyrics' ? 'var(--primary)' : 'transparent', color: '#fff', transition: 'background 0.2s' }}
+                      >LYRICS</button>
+                    </div>
+                  </div>
                   <textarea
-                    value={sermonText}
-                    onChange={(e) => setSermonText(e.target.value)}
-                    placeholder="Type or paste sermon content here..."
+                    value={mode === 'lyrics' ? lyricsText : sermonText}
+                    onChange={(e) => mode === 'lyrics' ? setLyricsText(e.target.value) : setSermonText(e.target.value)}
+                    placeholder={mode === 'lyrics' ? 'Paste song lyrics here...' : 'Type or paste sermon content here...'}
                     spellCheck="false"
                   />
                 </div>
@@ -639,10 +781,13 @@ function App() {
                           {slide.type === 'title' && <Sparkles size={12} />}
                           {slide.type === 'content' && <FileText size={12} />}
                           {slide.type === 'scripture' && <Play size={12} />}
+                          {slide.type === 'lyric' && <span style={{ fontSize: '10px' }}>♪</span>}
                         </span>
                         <span className="cue-num">{String(idx + 1).padStart(2, '0')}</span>
                         <span className="cue-text">
-                          {slide.type === 'scripture' ? `${slide.reference}` : (slide.title || "---")}
+                          {slide.type === 'scripture' && slide.reference}
+                          {slide.type === 'lyric' && (slide.label ? `[${slide.label}] ${slide.lines[0] || ''}` : (slide.lines[0] || '---'))}
+                          {(slide.type === 'title' || slide.type === 'content') && (slide.title || '---')}
                         </span>
                       </div>
                     ))}
@@ -833,17 +978,34 @@ function App() {
                     textTransform: theme.uppercase ? 'uppercase' : 'none', fontWeight: theme.bold ? '900' : '400', 
                     fontStyle: theme.italic ? 'italic' : 'normal', color: theme.text 
                   }}>
-                    {/* Reference pinned at top */}
                     <div style={{ flex: '0 0 auto', textAlign: 'center', fontSize: '1.8vw', color: theme.accent, padding: '1vw 0 0.5vw', fontWeight: '800' }}>
                       {slides[activeSlideIndex].reference}
                     </div>
-                    {/* Verse content fills remaining space, centered */}
                     <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', overflow: 'hidden', padding: '0 3%' }}>
-                      <div style={{
-                        fontSize: getDynamicFontSize(slides[activeSlideIndex].text, 'scripture'),
-                        lineHeight: '1.25',
-                      }}>
+                      <div style={{ fontSize: getDynamicFontSize(slides[activeSlideIndex].text, 'scripture'), lineHeight: '1.25' }}>
                         &ldquo;{slides[activeSlideIndex].text}&rdquo;
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {slides[activeSlideIndex].type === 'lyric' && (
+                  <div key={activeSlideIndex} className="slide-anim" style={{
+                    width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
+                    textTransform: theme.uppercase ? 'uppercase' : 'none',
+                    fontWeight: theme.bold ? '900' : '400',
+                    fontStyle: theme.italic ? 'italic' : 'normal',
+                    color: theme.text
+                  }}>
+                    {slides[activeSlideIndex].label && (
+                      <div style={{ flex: '0 0 auto', textAlign: 'center', fontSize: '1.5vw', color: theme.accent, padding: '0.8vw 0 0.3vw', fontWeight: '800', letterSpacing: '0.1em' }}>
+                        {slides[activeSlideIndex].label}
+                      </div>
+                    )}
+                    <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', overflow: 'hidden', padding: '0 4%' }}>
+                      <div style={{ fontSize: getLyricFontSize(slides[activeSlideIndex].lines), lineHeight: '1.4' }}>
+                        {slides[activeSlideIndex].lines.map((line, i) => (
+                          <div key={i}>{line}</div>
+                        ))}
                       </div>
                     </div>
                   </div>
