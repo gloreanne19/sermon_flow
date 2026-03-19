@@ -218,11 +218,11 @@ function App() {
           `;
         } else if (slide.type === 'scripture') {
           contentHtml = `
-            <div style="position: absolute; top: 3%; left: 0; width: 100%; text-align: center; text-transform: ${textTransform}; font-weight: ${fontWeight}; font-style: ${fontStyle};">
-              <div style="font-size: 2vw; color: ${theme.accent}; font-weight: 800;">${slide.reference}</div>
-            </div>
-            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; text-align: center; text-transform: ${textTransform}; font-weight: ${fontWeight}; font-style: ${fontStyle}; color: ${theme.text}; padding: 8% 5% 2% 5%; box-sizing: border-box;">
-              <div style="font-size: ${getFontSize(slide.text, 'scripture')}; line-height: 1.2;">"${slide.text}"</div>
+            <div style="width: 100%; height: 100%; display: flex; flex-direction: column; text-transform: ${textTransform}; font-weight: ${fontWeight}; font-style: ${fontStyle};">
+              <div style="flex: 0 0 auto; text-align: center; font-size: 2vw; color: ${theme.accent}; font-weight: 800; padding: 1vw 0;">${slide.reference}</div>
+              <div style="flex: 1 1 auto; display: flex; align-items: center; justify-content: center; text-align: center; color: ${theme.text}; overflow: hidden; padding: 0 3%;">
+                <div style="font-size: ${getFontSize(slide.text, 'scripture')}; line-height: 1.25;">&ldquo;${slide.text}&rdquo;</div>
+              </div>
             </div>
           `;
         }
@@ -471,7 +471,7 @@ function App() {
       let pptx = new pptxgen();
       pptx.layout = "LAYOUT_16x9";
 
-      for (const slideData of slides) {
+      for (const slideData of slides.filter(s => s.type !== 'title')) {
         let slide = pptx.addSlide();
 
         if (theme.bgImage) {
@@ -524,6 +524,15 @@ function App() {
           });
         }
         else if (slideData.type === 'scripture') {
+          // Dedicated PPTX font-size calculator for scripture text.
+          // Text box area: 9.5" wide x 4.5" tall.
+          // At font size F (pts): ~(9.5*72)/(F*0.65) chars/line, ~(4.5*72)/(F*1.35) lines available.
+          // Capacity ≈ 716/F * 240/F = 171,840/F². Solve for F: F = sqrt(171840/length).
+          // This is capped at 44pt max and 12pt min.
+          const scrLen = processText(slideData.text).length || 1;
+          const rawSize = Math.sqrt(171840 / scrLen);
+          const pptxScriptureFontSize = Math.min(44, Math.max(12, Math.floor(rawSize))) * theme.sizeMultiplier;
+
           slide.addText(processText(slideData.reference), {
             x: 0.25, y: 0.2, w: 9.5, h: 0.75,
             fontSize: 24 * theme.sizeMultiplier, fontFace: theme.fontFace, bold: true, color: theme.accent.replace('#', ''),
@@ -532,14 +541,13 @@ function App() {
 
           slide.addText(processText(slideData.text), {
             x: 0.25, y: 0.95, w: 9.5, h: 4.5,
-            fontSize: getDynamicFontSize(slideData.text, 'scripture', true),
+            fontSize: pptxScriptureFontSize,
             fontFace: theme.fontFace,
             bold: theme.bold,
             italic: theme.italic,
             color: theme.text.replace('#', ''),
             align: "center",
             valign: "middle",
-            shrinkText: true
           });
         }
       }
@@ -819,22 +827,21 @@ function App() {
                 )}
                 {slides[activeSlideIndex].type === 'scripture' && (
                   <div key={activeSlideIndex} className="slide-anim" style={{ 
-                    position: 'relative', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', 
+                    width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
                     textTransform: theme.uppercase ? 'uppercase' : 'none', fontWeight: theme.bold ? '900' : '400', 
                     fontStyle: theme.italic ? 'italic' : 'normal', color: theme.text 
                   }}>
-                    {/* Fixed Reference at the Top */}
-                    <div style={{ flex: '0 0 auto', textAlign: 'center', fontSize: '1.8vw', color: theme.accent, padding: '1vw 0', fontWeight: '800' }}>
+                    {/* Reference pinned at top */}
+                    <div style={{ flex: '0 0 auto', textAlign: 'center', fontSize: '1.8vw', color: theme.accent, padding: '1vw 0 0.5vw', fontWeight: '800' }}>
                       {slides[activeSlideIndex].reference}
                     </div>
-                    {/* Centered Verse Content that shrinks if needed */}
-                    <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', overflow: 'hidden' }}>
+                    {/* Verse content fills remaining space, centered */}
+                    <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', overflow: 'hidden', padding: '0 3%' }}>
                       <div style={{
                         fontSize: getDynamicFontSize(slides[activeSlideIndex].text, 'scripture'),
-                        lineHeight: '1.2',
-                        maxWidth: '90%'
+                        lineHeight: '1.25',
                       }}>
-                        "{slides[activeSlideIndex].text}"
+                        &ldquo;{slides[activeSlideIndex].text}&rdquo;
                       </div>
                     </div>
                   </div>
