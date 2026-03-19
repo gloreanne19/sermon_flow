@@ -526,12 +526,13 @@ function App() {
         else if (slideData.type === 'scripture') {
           // Dedicated PPTX font-size calculator for scripture text.
           // Text box area: 9.5" wide x 4.5" tall.
-          // At font size F (pts): ~(9.5*72)/(F*0.65) chars/line, ~(4.5*72)/(F*1.35) lines available.
-          // Capacity ≈ 716/F * 240/F = 171,840/F². Solve for F: F = sqrt(171840/length).
-          // This is capped at 44pt max and 12pt min.
+          // At font size F (pts): chars/line = 9.5*72 / (F*0.55) = 1243/F
+          //                       lines available = 4.5*72 / (F*1.25) = 259/F
+          // Capacity = 1243/F * 259/F = 322,037 / F²  → F = sqrt(322037 / length)
+          // Capped at 54pt max and 12pt min.
           const scrLen = processText(slideData.text).length || 1;
-          const rawSize = Math.sqrt(171840 / scrLen);
-          const pptxScriptureFontSize = Math.min(44, Math.max(12, Math.floor(rawSize))) * theme.sizeMultiplier;
+          const rawSize = Math.sqrt(322037 / scrLen);
+          const pptxScriptureFontSize = Math.min(54, Math.max(12, Math.floor(rawSize))) * theme.sizeMultiplier;
 
           slide.addText(processText(slideData.reference), {
             x: 0.25, y: 0.2, w: 9.5, h: 0.75,
@@ -548,6 +549,7 @@ function App() {
             color: theme.text.replace('#', ''),
             align: "center",
             valign: "middle",
+            shrinkText: true
           });
         }
       }
