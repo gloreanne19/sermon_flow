@@ -526,19 +526,20 @@ function App() {
         else if (slideData.type === 'scripture') {
           slide.addText(processText(slideData.reference), {
             x: 0.25, y: 0.2, w: 9.5, h: 0.8,
-            fontSize: 32 * theme.sizeMultiplier, fontFace: theme.fontFace, bold: true, color: theme.accent.replace('#', ''),
+            fontSize: 40 * theme.sizeMultiplier, fontFace: theme.fontFace, bold: true, color: theme.accent.replace('#', ''),
             align: "center", valign: "top", shrinkText: true
           });
 
           slide.addText(processText(slideData.text), {
-            x: 0.25, y: 1.0, w: 9.5, h: 4.3,
-            fontSize: 65 * theme.sizeMultiplier, // Huge default layout to force PowerPoint to shrink and completely fill the text box
+            x: 0.15, y: 1.0, w: 9.7, h: 4.4,
+            fontSize: 150 * theme.sizeMultiplier, // Extremely huge default so PowerPoint auto-shrinks it down to precisely the exact bounding box size
             fontFace: theme.fontFace,
             bold: theme.bold,
             italic: theme.italic,
             color: theme.text.replace('#', ''),
             align: "center",
             valign: "middle",
+            margin: 0,
             breakLine: false,
             fit: "shrink"
           });
