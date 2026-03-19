@@ -526,13 +526,13 @@ function App() {
         else if (slideData.type === 'scripture') {
           slide.addText(processText(slideData.reference), {
             x: 0.25, y: 0.2, w: 9.5, h: 0.8,
-            fontSize: 28 * theme.sizeMultiplier, fontFace: theme.fontFace, bold: true, color: theme.accent.replace('#', ''),
+            fontSize: 32 * theme.sizeMultiplier, fontFace: theme.fontFace, bold: true, color: theme.accent.replace('#', ''),
             align: "center", valign: "top", shrinkText: true
           });
 
           slide.addText(processText(slideData.text), {
             x: 0.25, y: 1.0, w: 9.5, h: 4.3,
-            fontSize: getDynamicFontSize(slideData.text, 'scripture', true),
+            fontSize: 65 * theme.sizeMultiplier, // Huge default layout to force PowerPoint to shrink and completely fill the text box
             fontFace: theme.fontFace,
             bold: theme.bold,
             italic: theme.italic,
