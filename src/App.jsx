@@ -158,11 +158,11 @@ function App() {
 
       // Handle Sync
       const channel = new BroadcastChannel('sermon_flow_sync');
-      
+
       const updateContent = (data) => {
         const root = projectorWindow.document.getElementById('projector-root');
         if (!root) return;
-        
+
         if (data.isBlackout) {
           root.innerHTML = '';
           root.style.backgroundColor = '#000';
@@ -208,7 +208,7 @@ function App() {
             </div>
           `;
         } else if (slide.type === 'content') {
-            contentHtml = `
+          contentHtml = `
             <div style="text-align:center; text-transform:${textTransform}; font-weight:${fontWeight}; font-style:${fontStyle}; color:${theme.text}; width:100%;">
               ${slide.mainTitle ? `<div style="font-size:1.8vw; color:${theme.subtitleColor}; margin-bottom:2vw; font-weight:700;">${slide.mainTitle.toUpperCase()}</div>` : ''}
               <div style="font-size:${getFontSize(slide.title, 'content')}; line-height:1.2;">${slide.title}</div>
@@ -525,7 +525,7 @@ function App() {
           });
 
           slide.addText(processText(slideData.text), {
-            x: 0.25, y: 1.0, w: 9.5, h: 4,
+            x: 0.25, y: 0.6, w: 9.5, h: 4.5,
             fontSize: getDynamicFontSize(slideData.text, 'scripture', true),
             fontFace: theme.fontFace,
             bold: theme.bold,
@@ -740,15 +740,15 @@ function App() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <div className="section-label" style={{ margin: 0 }}><Play size={14} /> LIVE PROJECTION</div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button 
-                className="btn" 
+              <button
+                className="btn"
                 onClick={openProjectorWindow}
                 style={{ padding: '0.4rem 1rem', fontSize: '0.7rem', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
               >
                 <Download size={12} style={{ transform: 'rotate(-90deg)' }} /> POP-OUT
               </button>
-              <button 
-                className="btn" 
+              <button
+                className="btn"
                 onClick={toggleFullscreen}
                 style={{ padding: '0.4rem 1rem', fontSize: '0.7rem', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
               >
