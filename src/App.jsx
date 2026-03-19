@@ -187,12 +187,12 @@ function App() {
             else baseSize = 18;
           }
           else if (type === 'scripture') {
-            if (length < 80) baseSize = 60;
-            else if (length < 130) baseSize = 50;
-            else if (length < 180) baseSize = 42;
-            else if (length < 250) baseSize = 36;
-            else if (length < 350) baseSize = 28;
-            else baseSize = 22;
+            if (length < 60) baseSize = 36;
+            else if (length < 100) baseSize = 30;
+            else if (length < 160) baseSize = 24;
+            else if (length < 250) baseSize = 20;
+            else if (length < 380) baseSize = 17;
+            else baseSize = 14;
           }
           return `${baseSize * theme.sizeMultiplier * 0.1}vw`;
         };
@@ -331,12 +331,12 @@ function App() {
       else baseSize = 18;
     }
     else if (type === 'scripture') {
-      if (length < 80) baseSize = 60;
-      else if (length < 130) baseSize = 50;
-      else if (length < 180) baseSize = 42;
-      else if (length < 250) baseSize = 36;
-      else if (length < 350) baseSize = 28;
-      else baseSize = 22;
+      if (length < 60) baseSize = 36;
+      else if (length < 100) baseSize = 30;
+      else if (length < 160) baseSize = 24;
+      else if (length < 250) baseSize = 20;
+      else if (length < 380) baseSize = 17;
+      else baseSize = 14;
     }
 
     const scaled = baseSize * theme.sizeMultiplier;
@@ -525,22 +525,21 @@ function App() {
         }
         else if (slideData.type === 'scripture') {
           slide.addText(processText(slideData.reference), {
-            x: 0.25, y: 0.2, w: 9.5, h: 0.8,
-            fontSize: 40 * theme.sizeMultiplier, fontFace: theme.fontFace, bold: true, color: theme.accent.replace('#', ''),
-            align: "center", valign: "top", shrinkText: true
+            x: 0.25, y: 0.2, w: 9.5, h: 0.75,
+            fontSize: 24 * theme.sizeMultiplier, fontFace: theme.fontFace, bold: true, color: theme.accent.replace('#', ''),
+            align: "center", valign: "middle", shrinkText: true
           });
 
           slide.addText(processText(slideData.text), {
-            x: 0.15, y: 1.0, w: 9.7, h: 4.4,
-            fontSize: getDynamicFontSize(slideData.text, 'scripture', true), // Uses an aggressive but realistic base size
+            x: 0.25, y: 0.95, w: 9.5, h: 4.5,
+            fontSize: getDynamicFontSize(slideData.text, 'scripture', true),
             fontFace: theme.fontFace,
             bold: theme.bold,
             italic: theme.italic,
             color: theme.text.replace('#', ''),
             align: "center",
             valign: "middle",
-            margin: 0,
-            fit: "shrink"
+            shrinkText: true
           });
         }
       }
