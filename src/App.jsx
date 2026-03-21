@@ -224,15 +224,15 @@ function App() {
             else baseSize = 18;
           }
           else if (type === 'scripture') {
-            if (length < 60) baseSize = 36;
-            else if (length < 100) baseSize = 30;
-            else if (length < 160) baseSize = 24;
-            else if (length < 250) baseSize = 20;
-            else if (length < 380) baseSize = 17;
-            else baseSize = 14;
+            if (length < 60) baseSize = 53;
+            else if (length < 100) baseSize = 45;
+            else if (length < 160) baseSize = 37;
+            else if (length < 250) baseSize = 32;
+            else if (length < 380) baseSize = 28;
+            else baseSize = 24;
           }
           
-          const multiplier = (type === 'scripture') ? 1.0 : theme.sizeMultiplier;
+          const multiplier = theme.sizeMultiplier;
           return `${baseSize * multiplier * 0.14}vw`;
         };
 
@@ -261,9 +261,11 @@ function App() {
           `;
         } else if (slide.type === 'content') {
           contentHtml = `
-            <div style="text-align:center; text-transform:${textTransform}; font-weight:${fontWeight}; font-style:${fontStyle}; color:${theme.text}; width:100%;">
-              ${slide.mainTitle ? `<div style="font-size:1.5vw; color:${theme.subtitleColor}; margin-bottom:1.5vw; font-weight:700;">${slide.mainTitle.toUpperCase()}</div>` : ''}
-              <div style="font-size:${getFontSize(slide.title, 'content')}; line-height:1.2;">${slide.title}</div>
+            <div style="width: 100%; height: 100%; display: flex; flex-direction: column; text-transform: ${textTransform}; font-weight: ${fontWeight}; font-style: ${fontStyle}; color: ${theme.text};">
+              ${slide.mainTitle ? `<div style="flex: 0 0 auto; text-align: center; font-size: 3.5vw; color: ${theme.accent}; font-weight: 800; padding: 0.5vw 0;">${slide.mainTitle}</div>` : ''}
+              <div style="flex: 1 1 auto; display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; padding: 0 4%;">
+                <div style="font-size:${getFontSize(slide.title, 'content')}; line-height:1.2;">${slide.title}</div>
+              </div>
             </div>
           `;
         } else if (slide.type === 'scripture') {
@@ -271,7 +273,7 @@ function App() {
             <div style="width: 100%; height: 100%; display: flex; flex-direction: column; text-transform: ${textTransform}; font-weight: ${fontWeight}; font-style: ${fontStyle};">
               <div style="flex: 0 0 auto; text-align: center; font-size: 3.5vw; color: ${theme.accent}; font-weight: 800; padding: 0.5vw 0;">${slide.reference}</div>
               <div style="flex: 1 1 auto; display: flex; align-items: center; justify-content: center; text-align: center; color: ${theme.text}; overflow: hidden; padding: 0 3%;">
-                <div style="font-size: ${getFontSize(slide.text, 'scripture')}; line-height: 1.2;">&ldquo;${slide.text}&rdquo;</div>
+                <div style="font-size: ${getFontSize(slide.text, 'scripture')}; line-height: 1.2;">${slide.verseNum ? `${slide.verseNum} ` : ''}&ldquo;${slide.text}&rdquo;</div>
               </div>
             </div>
           `;
@@ -517,8 +519,8 @@ function App() {
         } else {
           const kjvArray = Array.isArray(data.KJV) ? data.KJV : [{ num: '', text: data.KJV }];
           const mbbArray = Array.isArray(data.MBBTAG) ? data.MBBTAG : (data.MBBTAG ? [{ num: '', text: data.MBBTAG }] : []);
-          kjvArray.forEach(v => currentSlides.push({ type: 'scripture', context: parentContext, reference: v.num ? `${ref} (v.${v.num})` : ref, version: 'English (KJV)', text: v.text }));
-          mbbArray.forEach(v => currentSlides.push({ type: 'scripture', context: parentContext, reference: v.num ? `${ref} (v.${v.num})` : ref, version: 'Tagalog (MBBTAG)', text: v.text }));
+          kjvArray.forEach(v => currentSlides.push({ type: 'scripture', context: parentContext, reference: v.num ? `${ref} (v.${v.num})` : ref, version: 'English (KJV)', text: v.text, verseNum: v.num }));
+          mbbArray.forEach(v => currentSlides.push({ type: 'scripture', context: parentContext, reference: v.num ? `${ref} (v.${v.num})` : ref, version: 'Tagalog (MBBTAG)', text: v.text, verseNum: v.num }));
         }
       } else {
         currentSlides.push({ type: 'content', mainTitle: parentContext, title: trimmed });
@@ -636,14 +638,9 @@ function App() {
           });
         }
         else if (slideData.type === 'scripture') {
-          // Safely append translation version to reference
-          let displayRef = slideData.reference;
-          if (slideData.version) {
-              const versionMatch = slideData.version.match(/\(([^)]+)\)/);
-              if (versionMatch) displayRef += ` (${versionMatch[1]})`;
-          }
-
           // Fixed Reference: Clear of the text area
+          let displayRef = slideData.reference;
+
           slide.addText(processText(displayRef), {
             x: 0.5, y: 0.3, w: 9.0, h: 0.8,
             fontSize: 24 * theme.sizeMultiplier, 
@@ -655,7 +652,12 @@ function App() {
           });
 
           // Verse Text: Lower starting point to avoid any collision
-          slide.addText(processText(`\u201C${slideData.text}\u201D`), {
+          let textBody = `\u201C${slideData.text}\u201D`;
+          if (slideData.verseNum) {
+            textBody = `${slideData.verseNum} ${textBody}`;
+          }
+
+          slide.addText(processText(textBody), {
             x: 0.5, y: 1.4, w: 9.0, h: 4.0,
             fontSize: getDynamicFontSize(slideData.text, 'scripture', true),
             fontFace: theme.fontFace,
@@ -977,7 +979,7 @@ function App() {
                       </div>
                       <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', overflow: 'hidden', padding: '0 4%' }}>
                         <div style={{ fontSize: getDynamicFontSize(slides[activeSlideIndex].text, 'scripture'), lineHeight: '1.25' }}>
-                          &ldquo;{slides[activeSlideIndex].text}&rdquo;
+                          {slides[activeSlideIndex].verseNum ? `${slides[activeSlideIndex].verseNum} ` : ''}&ldquo;{slides[activeSlideIndex].text}&rdquo;
                         </div>
                       </div>
                     </div>
