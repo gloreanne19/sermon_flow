@@ -536,13 +536,6 @@ function App() {
       pptx.layout = "LAYOUT_16x9";
 
       // Helper to ensure PPTX colors are 6-digit hex without alpha or '#'
-      const toPptxColor = (hex) => {
-        if (!hex) return '000000';
-        let cleaned = hex.replace('#', '');
-        if (cleaned.length === 8) cleaned = cleaned.substring(0, 6);
-        return cleaned;
-      };
-
       for (const slideData of slides) {
         let slide = pptx.addSlide();
 
@@ -561,57 +554,48 @@ function App() {
           }
         });
 
-        const processText = (txt) => theme.uppercase ? txt.toUpperCase() : txt;
+        const processText = (txt) => theme.uppercase ? (txt || "").toUpperCase() : (txt || "");
 
         if (slideData.type === 'title') {
           slide.addText(processText(slideData.title), {
-            x: 0.25, y: 1, w: 9.5, h: 2.5,
+            x: 0.5, y: 1.2, w: 9.0, h: 2.0,
             fontSize: getDynamicFontSize(slideData.title, 'title', true),
             fontFace: theme.fontFace,
             bold: theme.bold, italic: theme.italic, color: toPptxColor(theme.titleColor),
-            align: "center", valign: "middle",
-            shrinkText: true
+            align: "center", valign: "middle", shrinkText: true
           });
-          slide.addText(processText(slideData.subtitle || ""), {
+          slide.addText(processText(slideData.subtitle), {
             x: 0.5, y: 3.5, w: 9, h: 1,
             fontSize: getDynamicFontSize(slideData.subtitle, 'subtitle', true),
             fontFace: theme.fontFace,
             bold: theme.bold, italic: theme.italic, color: toPptxColor(theme.subtitleColor),
-            align: "center", valign: "top",
-            shrinkText: true
+            align: "center", valign: "top", shrinkText: true
           });
         }
         else if (slideData.type === 'content') {
-          const textToDisplay = slideData.title || "";
-          slide.addText(processText(textToDisplay), {
-            x: 0.25, y: 0.25, w: 9.5, h: 5.125,
-            fontSize: getDynamicFontSize(textToDisplay, 'content', true),
+          slide.addText(processText(slideData.title), {
+            x: 0.5, y: 0.5, w: 9.0, h: 4.625,
+            fontSize: getDynamicFontSize(slideData.title, 'content', true),
             fontFace: theme.fontFace,
-            bold: theme.bold,
-            italic: theme.italic,
-            color: toPptxColor(theme.text),
-            align: "center",
-            valign: "middle",
-            shrinkText: true
+            bold: theme.bold, italic: theme.italic, color: toPptxColor(theme.text),
+            align: "center", valign: "middle", shrinkText: true
           });
         }
         else if (slideData.type === 'lyric') {
-          const processedLines = slideData.lines.map(l => theme.uppercase ? l.toUpperCase() : l);
-          const lyricText = processedLines.join('\n');
           const lyricFontSize = getLyricFontSize(slideData.lines, true);
 
           if (slideData.label) {
-            slide.addText(theme.uppercase ? slideData.label.toUpperCase() : slideData.label, {
-              x: 0.25, y: 0.15, w: 9.5, h: 0.6,
-              fontSize: 18 * theme.sizeMultiplier, fontFace: theme.fontFace,
+            slide.addText(processText(slideData.label), {
+              x: 0.5, y: 0.3, w: 9.0, h: 0.6,
+              fontSize: 20 * theme.sizeMultiplier, fontFace: theme.fontFace,
               bold: true, color: toPptxColor(theme.accent),
-              align: 'center', valign: 'middle', shrinkText: true
+              align: 'center', valign: 'bottom'
             });
           }
 
-          slide.addText(lyricText, {
-            x: 0.25, y: slideData.label ? 0.85 : 0.25,
-            w: 9.5, h: slideData.label ? 4.6 : 5.125,
+          slide.addText(processText(slideData.text), {
+            x: 0.5, y: slideData.label ? 1.2 : 0.5,
+            w: 9.0, h: slideData.label ? 3.9 : 4.625,
             fontSize: lyricFontSize,
             fontFace: theme.fontFace,
             bold: theme.bold, italic: theme.italic,
@@ -622,17 +606,24 @@ function App() {
         }
         else if (slideData.type === 'scripture') {
           const scrLen = processText(slideData.text).length || 1;
-          const rawSize = Math.sqrt(322037 / scrLen);
-          const pptxScriptureFontSize = Math.min(54, Math.max(12, Math.floor(rawSize))) * theme.sizeMultiplier;
+          // More conservative font size for scripture to prevent overlap
+          const rawSize = Math.sqrt(280000 / scrLen); 
+          const pptxScriptureFontSize = Math.min(42, Math.max(12, Math.floor(rawSize))) * theme.sizeMultiplier;
 
+          // Fixed Reference: Clear of the text area
           slide.addText(processText(slideData.reference), {
-            x: 0.25, y: 0.3, w: 9.5, h: 0.6,
-            fontSize: 22 * theme.sizeMultiplier, fontFace: theme.fontFace, bold: true, color: toPptxColor(theme.accent),
-            align: "center", valign: "top", shrinkText: true
+            x: 0.5, y: 0.3, w: 9.0, h: 0.7,
+            fontSize: 22 * theme.sizeMultiplier, 
+            fontFace: theme.fontFace, 
+            bold: true, 
+            color: toPptxColor(theme.accent),
+            align: "center", 
+            valign: "bottom"
           });
 
+          // Verse Text: Lower starting point (y: 1.7) to avoid any collision
           slide.addText(processText(slideData.text), {
-            x: 0.5, y: 1.1, w: 9.0, h: 4.2,
+            x: 0.75, y: 1.4, w: 8.5, h: 3.7,
             fontSize: pptxScriptureFontSize,
             fontFace: theme.fontFace,
             bold: theme.bold,
@@ -640,6 +631,7 @@ function App() {
             color: toPptxColor(theme.text),
             align: "center",
             valign: "middle",
+            lineSpacing: 1.1,
             shrinkText: true
           });
         }
@@ -653,13 +645,7 @@ function App() {
       let filename = 'presentation';
       if (mode === 'lyrics') {
         const first = slides[0];
-        if (first && first.lines && first.lines.length > 0) {
-          filename = first.lines[0];
-        } else if (first && (first.title || first.text)) {
-          filename = first.title || first.text;
-        } else {
-          filename = 'Song_Lyrics';
-        }
+        filename = (first && (first.lines?.[0] || first.title || first.text)) || 'Song_Lyrics';
       } else {
         const firstLine = sermonText.trim().split('\n')[0].toLowerCase();
         let serviceType = 'Sermon';
@@ -671,10 +657,10 @@ function App() {
 
       // 2. Write File
       await pptx.writeFile({ fileName: `${sanitize(filename)}.pptx` });
-      setStatus('Export Ready! Check downloads.');
+      setStatus('Export Ready!');
     } catch (error) {
       console.error(error);
-      setStatus('Error generating PowerPoint.');
+      setStatus('Export Error.');
     } finally {
       setIsGenerating(false);
       setTimeout(() => setStatus(''), 5000);
@@ -690,25 +676,23 @@ function App() {
         </div>
         <div style={{ textAlign: 'right' }}>
           <p>PRESENTATION CONSOLE</p>
-          <p style={{ fontSize: '0.65rem', opacity: 0.8, color: theme.accent, marginTop: '2px', letterSpacing: '0.1em', fontWeight: 'bold' }}>BY GLOREANNE</p>
+          <p style={{ fontSize: '0.65rem', opacity: 0.8, color: cleanColor(theme.accent), marginTop: '2px', letterSpacing: '0.1em', fontWeight: 'bold' }}>BY GLOREANNE</p>
           <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 'bold', letterSpacing: '0.05em' }}>• {slides.length} SLIDES</div>
         </div>
       </header>
 
       <main className="main-content">
         <section className="presenter-sidebar">
-          <div className="sidebar-tabs" style={{ display: 'flex', borderBottom: '1px solid var(--glass-border)' }}>
+          <div className="sidebar-tabs">
             <button
               className={`tab-btn ${activeTab === 'script' ? 'active' : ''}`}
               onClick={() => setActiveTab('script')}
-              style={{ flex: 1, padding: '1rem', background: 'transparent', border: 'none', color: activeTab === 'script' ? 'var(--primary)' : '#888', fontWeight: 'bold', cursor: 'pointer', borderBottom: activeTab === 'script' ? '2px solid var(--primary)' : 'none' }}
             >
               SCRIPT
             </button>
             <button
               className={`tab-btn ${activeTab === 'theme' ? 'active' : ''}`}
               onClick={() => setActiveTab('theme')}
-              style={{ flex: 1, padding: '1rem', background: 'transparent', border: 'none', color: activeTab === 'theme' ? 'var(--primary)' : '#888', fontWeight: 'bold', cursor: 'pointer', borderBottom: activeTab === 'theme' ? '2px solid var(--primary)' : 'none' }}
             >
               THEME
             </button>
@@ -720,17 +704,16 @@ function App() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div className="section-label" style={{ margin: 0 }}>
-                      {mode === 'lyrics' ? <span>♪</span> : <FileText size={14} />}
-                      {mode === 'lyrics' ? ' Song Lyrics' : ' Sermon Script'}
+                      {mode === 'lyrics' ? '♪ Song Lyrics' : <><FileText size={14} /> Sermon Script</>}
                     </div>
-                    <div style={{ display: 'flex', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--glass-border)', borderRadius: '6px', overflow: 'hidden' }}>
+                    <div className="mode-switch">
                       <button
                         onClick={() => { setMode('sermon'); setActiveSlideIndex(0); }}
-                        style={{ padding: '0.25rem 0.75rem', fontSize: '0.65rem', fontWeight: 'bold', letterSpacing: '0.05em', border: 'none', cursor: 'pointer', background: mode === 'sermon' ? 'var(--primary)' : 'transparent', color: '#fff', transition: 'background 0.2s' }}
+                        className={mode === 'sermon' ? 'active' : ''}
                       >SERMON</button>
                       <button
                         onClick={() => { setMode('lyrics'); setActiveSlideIndex(0); }}
-                        style={{ padding: '0.25rem 0.75rem', fontSize: '0.65rem', fontWeight: 'bold', letterSpacing: '0.05em', border: 'none', cursor: 'pointer', background: mode === 'lyrics' ? 'var(--primary)' : 'transparent', color: '#fff', transition: 'background 0.2s' }}
+                        className={mode === 'lyrics' ? 'active' : ''}
                       >LYRICS</button>
                     </div>
                   </div>
@@ -747,15 +730,7 @@ function App() {
                     <span><Play size={14} /> Active Cues</span>
                     <button
                       onClick={() => setIsBlackout(!isBlackout)}
-                      style={{
-                        fontSize: '0.6rem',
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        border: '1px solid var(--glass-border)',
-                        background: isBlackout ? '#ef4444' : 'transparent',
-                        color: '#fff',
-                        cursor: 'pointer'
-                      }}
+                      className={`blackout-btn ${isBlackout ? 'active' : ''}`}
                     >
                       {isBlackout ? 'LIVE: BLACKOUT' : 'BLACKOUT (B)'}
                     </button>
@@ -785,81 +760,80 @@ function App() {
                 </div>
               </>
             ) : (
-              <div className="theme-editor" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="theme-editor">
                 <div className="section-label">Design Customization</div>
 
                 <div className="theme-field">
-                  <label style={{ fontSize: '0.8rem', color: '#888', display: 'block', marginBottom: '0.5rem' }}>Background Image</label>
+                  <label>Background Image</label>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <input type="file" accept="image/*" onChange={handleImageUpload} style={{ fontSize: '0.7rem', flex: 1 }} />
+                    <input type="file" accept="image/*" onChange={handleImageUpload} />
                     {theme.bgImage && (
-                      <button onClick={() => setTheme({ ...theme, bgImage: null })} style={{ padding: '0 8px', background: '#ef4444', border: 'none', borderRadius: '4px', color: '#fff' }}>X</button>
+                      <button onClick={() => setTheme({ ...theme, bgImage: null })} className="clear-img">X</button>
                     )}
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                <div className="grid-2">
                   <div className="theme-field">
-                    <label style={{ fontSize: '0.8rem', color: '#888', display: 'block', marginBottom: '0.5rem' }}>BG Color (Fallback)</label>
-                    <input type="color" value={theme.bg} onChange={(e) => setTheme({ ...theme, bg: e.target.value })} style={{ width: '100%', height: '35px' }} />
+                    <label>BG Color</label>
+                    <input type="color" value={theme.bg} onChange={(e) => setTheme({ ...theme, bg: e.target.value })} />
                   </div>
                   <div className="theme-field">
-                    <label style={{ fontSize: '0.8rem', color: '#888', display: 'block', marginBottom: '0.5rem' }}>Slide/Card Color</label>
-                    <input type="color" value={theme.card} onChange={(e) => setTheme({ ...theme, card: e.target.value })} style={{ width: '100%', height: '35px' }} />
+                    <label>Slide Color</label>
+                    <input type="color" value={theme.card} onChange={(e) => setTheme({ ...theme, card: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="theme-field">
-                  <label style={{ fontSize: '0.8rem', color: '#888', display: 'block', marginBottom: '0.5rem' }}>Main Font Face</label>
+                  <label>Font Family</label>
                   <select
                     value={theme.fontFace}
                     onChange={(e) => setTheme({ ...theme, fontFace: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--glass-border)', color: '#fff', borderRadius: '4px' }}
                   >
-                    <option value="Arial">Arial (Clean)</option>
-                    <option value="Calibri">Calibri (Modern)</option>
-                    <option value="Impact">Impact (Strong)</option>
-                    <option value="Georgia">Georgia (Classic)</option>
-                    <option value="Verdana">Verdana (Wide)</option>
+                    <option value="Arial">Arial</option>
+                    <option value="Calibri">Calibri</option>
+                    <option value="Impact">Impact</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Verdana">Verdana</option>
                     <option value="Times New Roman">Times New Roman</option>
                   </select>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                <div className="grid-2">
                   <div className="theme-field">
-                    <label style={{ fontSize: '0.8rem', color: '#888', display: 'block', marginBottom: '0.5rem' }}>Title Color</label>
-                    <input type="color" value={theme.titleColor} onChange={(e) => setTheme({ ...theme, titleColor: e.target.value })} style={{ width: '100%', height: '35px' }} />
+                    <label>Title</label>
+                    <input type="color" value={theme.titleColor} onChange={(e) => setTheme({ ...theme, titleColor: e.target.value })} />
                   </div>
                   <div className="theme-field">
-                    <label style={{ fontSize: '0.8rem', color: '#888', display: 'block', marginBottom: '0.5rem' }}>Subtitle Color</label>
-                    <input type="color" value={theme.subtitleColor} onChange={(e) => setTheme({ ...theme, subtitleColor: e.target.value })} style={{ width: '100%', height: '35px' }} />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <div className="theme-field">
-                    <label style={{ fontSize: '0.8rem', color: '#888', display: 'block', marginBottom: '0.5rem' }}>Body Text Color</label>
-                    <input type="color" value={theme.text} onChange={(e) => setTheme({ ...theme, text: e.target.value })} style={{ width: '100%', height: '35px' }} />
-                  </div>
-                  <div className="theme-field">
-                    <label style={{ fontSize: '0.8rem', color: '#888', display: 'block', marginBottom: '0.5rem' }}>Reference Color</label>
-                    <input type="color" value={theme.accent} onChange={(e) => setTheme({ ...theme, accent: e.target.value })} style={{ width: '100%', height: '35px' }} />
+                    <label>Subtitle</label>
+                    <input type="color" value={theme.subtitleColor} onChange={(e) => setTheme({ ...theme, subtitleColor: e.target.value })} />
                   </div>
                 </div>
 
-                <div className="theme-field">
-                  <label style={{ fontSize: '0.8rem', color: '#888', display: 'block', marginBottom: '0.5rem' }}>Overlay Opacity: {(theme.overlayOpacity * 100).toFixed(0)}%</label>
-                  <input type="range" min="0" max="1" step="0.05" value={theme.overlayOpacity} onChange={(e) => setTheme({ ...theme, overlayOpacity: parseFloat(e.target.value) })} style={{ width: '100%' }} />
+                <div className="grid-2">
+                  <div className="theme-field">
+                    <label>Body Text</label>
+                    <input type="color" value={theme.text} onChange={(e) => setTheme({ ...theme, text: e.target.value })} />
+                  </div>
+                  <div className="theme-field">
+                    <label>Reference</label>
+                    <input type="color" value={theme.accent} onChange={(e) => setTheme({ ...theme, accent: e.target.value })} />
+                  </div>
                 </div>
 
                 <div className="theme-field">
-                  <label style={{ fontSize: '0.8rem', color: '#888', display: 'block', marginBottom: '0.5rem' }}>Font Size Multiplier: {theme.sizeMultiplier.toFixed(1)}x</label>
-                  <input type="range" min="0.5" max="2.0" step="0.1" value={theme.sizeMultiplier} onChange={(e) => setTheme({ ...theme, sizeMultiplier: parseFloat(e.target.value) })} style={{ width: '100%' }} />
+                  <label>Overlay Opacity: {(theme.overlayOpacity * 100).toFixed(0)}%</label>
+                  <input type="range" min="0" max="1" step="0.05" value={theme.overlayOpacity} onChange={(e) => setTheme({ ...theme, overlayOpacity: parseFloat(e.target.value) })} />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                  <button onClick={() => setTheme({ ...theme, uppercase: !theme.uppercase })} style={{ padding: '0.5rem', background: theme.uppercase ? 'var(--primary)' : 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid var(--glass-border)', borderRadius: '8px', cursor: 'pointer' }}>UPPERCASE</button>
-                  <button onClick={() => setTheme({ ...theme, italic: !theme.italic })} style={{ padding: '0.5rem', background: theme.italic ? 'var(--primary)' : 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid var(--glass-border)', borderRadius: '8px', cursor: 'pointer' }}>ITALIC</button>
+                <div className="theme-field">
+                  <label>Font Size: {theme.sizeMultiplier.toFixed(1)}x</label>
+                  <input type="range" min="0.5" max="2.0" step="0.1" value={theme.sizeMultiplier} onChange={(e) => setTheme({ ...theme, sizeMultiplier: parseFloat(e.target.value) })} />
+                </div>
+
+                <div className="grid-2">
+                  <button onClick={() => setTheme({ ...theme, uppercase: !theme.uppercase })} className={theme.uppercase ? 'active' : ''}>UPPER</button>
+                  <button onClick={() => setTheme({ ...theme, italic: !theme.italic })} className={theme.italic ? 'active' : ''}>ITALIC</button>
                 </div>
               </div>
             )}
@@ -878,132 +852,128 @@ function App() {
                 className="btn refresh-btn"
                 onClick={clearCache}
                 title="Refresh Bible Cache"
-                style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', width: 'auto', padding: '0 1rem', border: '1px solid var(--glass-border)' }}
               >
                 <RefreshCw size={18} />
               </button>
             </div>
-            {status && <div style={{ fontSize: '0.75rem', color: 'var(--primary)', textAlign: 'center', opacity: 0.8 }}>{status}</div>}
+            {status && <div className="status-msg">{status}</div>}
           </div>
         </section>
 
         <section className="live-projection-area">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <div className="projection-header">
             <div className="section-label" style={{ margin: 0 }}><Play size={14} /> LIVE PROJECTION</div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
-                className="btn"
+                className="btn btn-glass"
                 onClick={openProjectorWindow}
-                style={{ padding: '0.4rem 1rem', fontSize: '0.7rem', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
               >
                 <Download size={12} style={{ transform: 'rotate(-90deg)' }} /> POP-OUT
               </button>
               <button
-                className="btn"
+                className="btn btn-primary"
                 onClick={toggleFullscreen}
-                style={{ padding: '0.4rem 1rem', fontSize: '0.7rem', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
               >
                 <Play size={12} fill="currentColor" /> FULLSCREEN
               </button>
             </div>
           </div>
-          {slides[activeSlideIndex] && (
-            <div className="projection-screen" ref={screenRef} style={{
-              visibility: isBlackout ? 'hidden' : 'visible',
-              backgroundColor: theme.bg,
-              backgroundImage: theme.bgImage ? `url(${theme.bgImage})` : 'none',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              // Add a special behavior for fullscreen mode via pseudo-class is usually better, but inline works for basics
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              {/* Semi-transparent overlay / Slide Card */}
-              <div style={{
-                position: 'absolute',
-                inset: 0,
-                backgroundColor: theme.card,
-                opacity: theme.bgImage ? theme.overlayOpacity : 1, // Becomes the main color if no image
-                zIndex: 0
-              }} />
-
-              <div style={{
-                position: 'relative',
-                zIndex: 1,
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '2% 3%',
-                fontFamily: theme.fontFace,
-                boxSizing: 'border-box'
+          <div className="screen-container" style={{ position: 'relative', width: '100%', aspectRatio: '16/9', overflow: 'hidden', borderRadius: '8px', border: '1px solid var(--glass-border)', containerType: 'inline-size' }}>
+            {slides[activeSlideIndex] && (
+              <div className="projection-screen" ref={screenRef} style={{
+                visibility: isBlackout ? 'hidden' : 'visible',
+                backgroundColor: cleanColor(theme.bg),
+                backgroundImage: theme.bgImage ? `url(${theme.bgImage})` : 'none',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                width: '100%', height: '100%', position: 'absolute', inset: 0
               }}>
-                {slides[activeSlideIndex].type === 'title' && (
-                  <div key={activeSlideIndex} className="slide-anim" style={{ textAlign: 'center', fontWeight: theme.bold ? '700' : '400', fontStyle: theme.italic ? 'italic' : 'normal', textTransform: theme.uppercase ? 'uppercase' : 'none', color: theme.titleColor }}>
-                    <div style={{ fontSize: getDynamicFontSize(slides[activeSlideIndex].title, 'title'), letterSpacing: '-0.03em', lineHeight: '1.1', marginBottom: '1vw' }}>{slides[activeSlideIndex].title}</div>
-                    <div style={{ fontSize: getDynamicFontSize(slides[activeSlideIndex].subtitle, 'subtitle'), color: theme.subtitleColor, fontWeight: '600' }}>{slides[activeSlideIndex].subtitle}</div>
-                  </div>
-                )}
-                {slides[activeSlideIndex].type === 'content' && (
-                  <div key={activeSlideIndex} className="slide-anim" style={{ textAlign: 'center', textTransform: theme.uppercase ? 'uppercase' : 'none', fontWeight: theme.bold ? '700' : '400', fontStyle: theme.italic ? 'italic' : 'normal', color: theme.text, width: '100%' }}>
-                    {slides[activeSlideIndex].mainTitle && (
-                      <div style={{ fontSize: '1.5vw', color: theme.subtitleColor, marginBottom: '2vw', fontWeight: '700' }}>
-                        {slides[activeSlideIndex].mainTitle.toUpperCase()}
-                      </div>
-                    )}
-                    <div style={{
-                      fontSize: getDynamicFontSize(slides[activeSlideIndex].title, 'content'),
-                      lineHeight: '1.2',
-                      letterSpacing: '-0.01em'
-                    }}>
-                      {slides[activeSlideIndex].title}
-                    </div>
-                  </div>
-                )}
-                {slides[activeSlideIndex].type === 'scripture' && (
-                  <div key={activeSlideIndex} className="slide-anim" style={{ 
-                    width: '100%', flex: 1, alignSelf: 'stretch', display: 'flex', flexDirection: 'column',
-                    textTransform: theme.uppercase ? 'uppercase' : 'none', fontWeight: theme.bold ? '700' : '400', 
-                    fontStyle: theme.italic ? 'italic' : 'normal', color: theme.text 
-                  }}>
-                    <div style={{ flex: '0 0 auto', textAlign: 'center', fontSize: '3.5cqw', color: theme.accent, padding: '0.5cqw 0 0.2cqw', fontWeight: '800' }}>
-                      {slides[activeSlideIndex].reference}
-                    </div>
-                    <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', overflow: 'hidden', padding: '0 3%' }}>
-                      <div style={{ fontSize: getDynamicFontSize(slides[activeSlideIndex].text, 'scripture'), lineHeight: '1.25' }}>
-                        &ldquo;{slides[activeSlideIndex].text}&rdquo;
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {slides[activeSlideIndex].type === 'lyric' && (
-                  <div key={activeSlideIndex} className="slide-anim" style={{
-                    width: '100%', flex: 1, alignSelf: 'stretch', display: 'flex', flexDirection: 'column',
-                    textTransform: theme.uppercase ? 'uppercase' : 'none',
-                    fontWeight: theme.bold ? '700' : '400',
-                    fontStyle: theme.italic ? 'italic' : 'normal',
-                    color: theme.text
-                  }}>
-                    {slides[activeSlideIndex].label && (
-                      <div style={{ flex: '0 0 auto', textAlign: 'center', fontSize: '3cqw', color: theme.accent, padding: '0.5cqw 0 0.2cqw', fontWeight: '800', letterSpacing: '0.1em' }}>
-                        {slides[activeSlideIndex].label}
-                      </div>
-                    )}
-                    <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', overflow: 'hidden', padding: '0 4%' }}>
-                      <div style={{ fontSize: getLyricFontSize(slides[activeSlideIndex].lines), lineHeight: '1.2' }}>
-                        {slides[activeSlideIndex].lines.map((line, i) => (
-                          <div key={i}>{line}</div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+                {/* Semi-transparent overlay / Slide Card */}
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundColor: cleanColor(theme.card),
+                  opacity: theme.bgImage ? theme.overlayOpacity : 1, // Becomes the main color if no image
+                  zIndex: 0
+                }} />
 
+                <div style={{
+                  position: 'relative',
+                  zIndex: 1,
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '4%',
+                  fontFamily: theme.fontFace,
+                  boxSizing: 'border-box'
+                }}>
+                  {slides[activeSlideIndex].type === 'title' && (
+                    <div key={activeSlideIndex} className="slide-anim" style={{ textAlign: 'center', fontWeight: theme.bold ? '700' : '400', fontStyle: theme.italic ? 'italic' : 'normal', textTransform: theme.uppercase ? 'uppercase' : 'none', color: cleanColor(theme.titleColor) }}>
+                      <div style={{ fontSize: getDynamicFontSize(slides[activeSlideIndex].title, 'title'), letterSpacing: '-0.03em', lineHeight: '1.1', marginBottom: '1vw' }}>{slides[activeSlideIndex].title}</div>
+                      <div style={{ fontSize: getDynamicFontSize(slides[activeSlideIndex].subtitle, 'subtitle'), color: cleanColor(theme.subtitleColor), fontWeight: '600' }}>{slides[activeSlideIndex].subtitle}</div>
+                    </div>
+                  )}
+                  {slides[activeSlideIndex].type === 'content' && (
+                    <div key={activeSlideIndex} className="slide-anim" style={{ textAlign: 'center', textTransform: theme.uppercase ? 'uppercase' : 'none', fontWeight: theme.bold ? '700' : '400', fontStyle: theme.italic ? 'italic' : 'normal', color: cleanColor(theme.text), width: '100%' }}>
+                      {slides[activeSlideIndex].mainTitle && (
+                        <div style={{ fontSize: '1.5cqw', color: cleanColor(theme.subtitleColor), marginBottom: '2vw', fontWeight: '700' }}>
+                          {slides[activeSlideIndex].mainTitle.toUpperCase()}
+                        </div>
+                      )}
+                      <div style={{
+                        fontSize: getDynamicFontSize(slides[activeSlideIndex].title, 'content'),
+                        lineHeight: '1.2',
+                        letterSpacing: '-0.01em'
+                      }}>
+                        {slides[activeSlideIndex].title}
+                      </div>
+                    </div>
+                  )}
+                  {slides[activeSlideIndex].type === 'scripture' && (
+                    <div key={activeSlideIndex} className="slide-anim" style={{ 
+                      width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
+                      textTransform: theme.uppercase ? 'uppercase' : 'none', fontWeight: theme.bold ? '700' : '400', 
+                      fontStyle: theme.italic ? 'italic' : 'normal', color: cleanColor(theme.text) 
+                    }}>
+                      <div style={{ flex: '0 0 auto', textAlign: 'center', fontSize: '3.5cqw', color: cleanColor(theme.accent), padding: '0.5cqw 0', fontWeight: '800' }}>
+                        {slides[activeSlideIndex].reference}
+                      </div>
+                      <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', overflow: 'hidden', padding: '0 4%' }}>
+                        <div style={{ fontSize: getDynamicFontSize(slides[activeSlideIndex].text, 'scripture'), lineHeight: '1.25' }}>
+                          &ldquo;{slides[activeSlideIndex].text}&rdquo;
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {slides[activeSlideIndex].type === 'lyric' && (
+                    <div key={activeSlideIndex} className="slide-anim" style={{
+                      width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
+                      textTransform: theme.uppercase ? 'uppercase' : 'none',
+                      fontWeight: theme.bold ? '700' : '400',
+                      fontStyle: theme.italic ? 'italic' : 'normal',
+                      color: cleanColor(theme.text)
+                    }}>
+                      {slides[activeSlideIndex].label && (
+                        <div style={{ flex: '0 0 auto', textAlign: 'center', fontSize: '3cqw', color: cleanColor(theme.accent), padding: '0.5cqw 0', fontWeight: '800', letterSpacing: '0.1em' }}>
+                          {slides[activeSlideIndex].label}
+                        </div>
+                      )}
+                      <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', overflow: 'hidden', padding: '0 5%' }}>
+                        <div style={{ fontSize: getLyricFontSize(slides[activeSlideIndex].lines), lineHeight: '1.2' }}>
+                          {slides[activeSlideIndex].lines.map((line, i) => (
+                            <div key={i}>{line}</div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
           <div className="status-bar">
             <span>COMMAND: {activeSlideIndex + 1} OF {slides.length}</span>
             <span>NAV: ARROWS / SPACE</span>
