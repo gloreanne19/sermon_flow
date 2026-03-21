@@ -588,13 +588,30 @@ function App() {
           });
         }
         else if (slideData.type === 'content') {
-          slide.addText(processText(slideData.title), {
-            x: 0.5, y: 0.5, w: 9.0, h: 4.625,
-            fontSize: getDynamicFontSize(slideData.title, 'content', true),
-            fontFace: theme.fontFace,
-            bold: theme.bold, italic: theme.italic, color: toPptxColor(theme.text),
-            align: "center", valign: "middle", shrinkText: true
-          });
+          if (slideData.mainTitle) {
+            slide.addText(processText(slideData.mainTitle), {
+              x: 0.5, y: 0.3, w: 9.0, h: 0.8,
+              fontSize: 24 * theme.sizeMultiplier,
+              fontFace: theme.fontFace,
+              bold: true, color: toPptxColor(theme.accent),
+              align: "center", valign: "bottom"
+            });
+            slide.addText(processText(slideData.title), {
+              x: 0.5, y: 1.4, w: 9.0, h: 4.0,
+              fontSize: getDynamicFontSize(slideData.title, 'content', true),
+              fontFace: theme.fontFace,
+              bold: theme.bold, italic: theme.italic, color: toPptxColor(theme.text),
+              align: "center", valign: "middle", wrap: true, autoFit: true
+            });
+          } else {
+            slide.addText(processText(slideData.title), {
+              x: 0.5, y: 0.5, w: 9.0, h: 4.625,
+              fontSize: getDynamicFontSize(slideData.title, 'content', true),
+              fontFace: theme.fontFace,
+              bold: theme.bold, italic: theme.italic, color: toPptxColor(theme.text),
+              align: "center", valign: "middle", wrap: true, autoFit: true
+            });
+          }
         }
         else if (slideData.type === 'lyric') {
           const lyricFontSize = getLyricFontSize(slideData.lines, true);
@@ -934,18 +951,19 @@ function App() {
                     </div>
                   )}
                   {slides[activeSlideIndex].type === 'content' && (
-                    <div key={activeSlideIndex} className="slide-anim" style={{ textAlign: 'center', textTransform: theme.uppercase ? 'uppercase' : 'none', fontWeight: theme.bold ? '700' : '400', fontStyle: theme.italic ? 'italic' : 'normal', color: cleanColor(theme.text), width: '100%' }}>
+                    <div key={activeSlideIndex} className="slide-anim" style={{ 
+                      width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
+                      textTransform: theme.uppercase ? 'uppercase' : 'none', fontWeight: theme.bold ? '700' : '400', fontStyle: theme.italic ? 'italic' : 'normal', color: cleanColor(theme.text) 
+                    }}>
                       {slides[activeSlideIndex].mainTitle && (
-                        <div style={{ fontSize: '1.5cqw', color: cleanColor(theme.subtitleColor), marginBottom: '2vw', fontWeight: '700' }}>
-                          {slides[activeSlideIndex].mainTitle.toUpperCase()}
+                        <div style={{ flex: '0 0 auto', textAlign: 'center', fontSize: '3.5cqw', color: cleanColor(theme.accent), padding: '0.5cqw 0', fontWeight: '800' }}>
+                          {slides[activeSlideIndex].mainTitle}
                         </div>
                       )}
-                      <div style={{
-                        fontSize: getDynamicFontSize(slides[activeSlideIndex].title, 'content'),
-                        lineHeight: '1.2',
-                        letterSpacing: '-0.01em'
-                      }}>
-                        {slides[activeSlideIndex].title}
+                      <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', overflow: 'hidden', padding: '0 4%' }}>
+                        <div style={{ fontSize: getDynamicFontSize(slides[activeSlideIndex].title, 'content'), lineHeight: '1.2', letterSpacing: '-0.01em' }}>
+                          {slides[activeSlideIndex].title}
+                        </div>
                       </div>
                     </div>
                   )}
