@@ -273,7 +273,7 @@ function App() {
             <div style="width: 100%; height: 100%; display: flex; flex-direction: column; text-transform: ${textTransform}; font-weight: ${fontWeight}; font-style: ${fontStyle};">
               <div style="flex: 0 0 auto; text-align: center; font-size: 3.5vw; color: ${theme.accent}; font-weight: 800; padding: 0.5vw 0;">${slide.reference}</div>
               <div style="flex: 1 1 auto; display: flex; align-items: center; justify-content: center; text-align: center; color: ${theme.text}; overflow: hidden; padding: 0 3%;">
-                <div style="font-size: ${getFontSize(slide.text, 'scripture')}; line-height: 1.2;">${slide.verseNum ? `${slide.verseNum} ` : ''}&ldquo;${slide.text}&rdquo;</div>
+                <div style="font-size: ${getFontSize(slide.text, 'scripture')}; line-height: 1.2;">${slide.verseNum ? `<sup style="font-size: 0.6em; opacity: 0.8; margin-right: 0.1em;">${slide.verseNum}</sup>` : ''}&ldquo;${slide.text}&rdquo;</div>
               </div>
             </div>
           `;
@@ -652,12 +652,15 @@ function App() {
           });
 
           // Verse Text: Lower starting point to avoid any collision
-          let textBody = `\u201C${slideData.text}\u201D`;
+          let textRuns = [];
           if (slideData.verseNum) {
-            textBody = `${slideData.verseNum} ${textBody}`;
+            textRuns.push({ text: processText(slideData.verseNum + ""), options: { superscript: true } });
+            textRuns.push({ text: processText(` \u201C${slideData.text}\u201D`) });
+          } else {
+            textRuns.push({ text: processText(`\u201C${slideData.text}\u201D`) });
           }
 
-          slide.addText(processText(textBody), {
+          slide.addText(textRuns, {
             x: 0.5, y: 1.4, w: 9.0, h: 4.0,
             fontSize: getDynamicFontSize(slideData.text, 'scripture', true),
             fontFace: theme.fontFace,
@@ -979,7 +982,8 @@ function App() {
                       </div>
                       <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', overflow: 'hidden', padding: '0 4%' }}>
                         <div style={{ fontSize: getDynamicFontSize(slides[activeSlideIndex].text, 'scripture'), lineHeight: '1.25' }}>
-                          {slides[activeSlideIndex].verseNum ? `${slides[activeSlideIndex].verseNum} ` : ''}&ldquo;{slides[activeSlideIndex].text}&rdquo;
+                          {slides[activeSlideIndex].verseNum && <sup style={{ fontSize: '0.6em', opacity: 0.8, marginRight: '0.1em' }}>{slides[activeSlideIndex].verseNum}</sup>}
+                          &ldquo;{slides[activeSlideIndex].text}&rdquo;
                         </div>
                       </div>
                     </div>
