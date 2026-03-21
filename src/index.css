@@ -56,6 +56,7 @@ header h1 {
   font-weight: 800;
   letter-spacing: -0.02em;
   background: linear-gradient(135deg, #fff 0%, var(--text-muted) 100%);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: flex;
@@ -311,12 +312,13 @@ textarea:focus {
 .live-projection-area {
   display: flex;
   flex-direction: column;
-  padding: 3rem;
+  padding: 2rem 3rem;
   background: #000;
   position: relative;
   overflow: hidden;
   justify-content: center;
   align-items: center;
+  gap: 1rem;
 }
 
 @keyframes slideIn {
@@ -349,18 +351,23 @@ textarea:focus {
 }
 
 .projection-screen {
-  width: 100%;
+  /* Lock to 16:9: grow as wide as possible but never taller than the available space */
+  width: min(100%, calc((100vh - 12rem) * 16 / 9));
   aspect-ratio: 16 / 9;
+  flex-shrink: 0;
   border-radius: 4px;
-  box-shadow: 0 0 80px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 100px rgba(0, 0, 0, 0.8);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 2%;
+  padding: 3%;
+  gap: 0.5cqh;
   position: relative;
   overflow: hidden;
   animation: slideIn 0.3s ease-out;
+  /* Define this as a container for font scaling */
+  container-type: size;
 }
 
 .projection-screen::after {
@@ -401,4 +408,18 @@ textarea:focus {
 .refresh-btn:active svg {
   transform: rotate(360deg);
   transition: transform 0.2s ease;
+}
+
+.brand-watermark {
+  position: absolute;
+  bottom: 1.5cqh;
+  right: 2cqw;
+  font-size: 1.2cqw;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  opacity: 0.35;
+  pointer-events: none;
+  font-family: 'Outfit', sans-serif;
+  z-index: 10;
+  text-transform: uppercase;
 }

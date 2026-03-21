@@ -4,7 +4,7 @@ import { Download, Play, FileText, CheckCircle2, Loader2, Sparkles, RefreshCw } 
 import localBibleData from './bibleData.json';
 
 const DEFAULT_SERMON = `Text: Genesis 1:1, John 3:16
-Subject: Welcome to Sermon Flow BBC
+Subject: PASTE PASTOR SERMON HERE AS IS
 
 How to use this tool:
 
@@ -216,12 +216,25 @@ function App() {
             else if (length < 380) baseSize = 17;
             else baseSize = 14;
           }
-          return `${baseSize * theme.sizeMultiplier * 0.1}vw`;
+          
+          const multiplier = (type === 'scripture') ? 1.0 : theme.sizeMultiplier;
+          return `${baseSize * multiplier * 0.14}vw`;
+        };
+
+        const getLyricFontSize = (lines) => {
+          const totalChars = lines.join(' ').length || 1;
+          const lineCount = lines.length;
+          let base;
+          if (lineCount <= 1) base = totalChars < 60 ? 52 : totalChars < 120 ? 38 : 28;
+          else if (lineCount <= 2) base = totalChars < 100 ? 44 : totalChars < 180 ? 34 : 26;
+          else if (lineCount <= 4) base = totalChars < 160 ? 36 : totalChars < 280 ? 28 : 22;
+          else base = totalChars < 300 ? 28 : 20;
+          return `${base * theme.sizeMultiplier * 0.14}vw`;
         };
 
         let contentHtml = '';
         const textTransform = theme.uppercase ? 'uppercase' : 'none';
-        const fontWeight = theme.bold ? '900' : '400';
+        const fontWeight = theme.bold ? '700' : '400';
         const fontStyle = theme.italic ? 'italic' : 'normal';
 
         if (slide.type === 'title') {
@@ -234,34 +247,27 @@ function App() {
         } else if (slide.type === 'content') {
           contentHtml = `
             <div style="text-align:center; text-transform:${textTransform}; font-weight:${fontWeight}; font-style:${fontStyle}; color:${theme.text}; width:100%;">
-              ${slide.mainTitle ? `<div style="font-size:1.8vw; color:${theme.subtitleColor}; margin-bottom:2vw; font-weight:700;">${slide.mainTitle.toUpperCase()}</div>` : ''}
+              ${slide.mainTitle ? `<div style="font-size:1.5vw; color:${theme.subtitleColor}; margin-bottom:1.5vw; font-weight:700;">${slide.mainTitle.toUpperCase()}</div>` : ''}
               <div style="font-size:${getFontSize(slide.title, 'content')}; line-height:1.2;">${slide.title}</div>
             </div>
           `;
         } else if (slide.type === 'scripture') {
           contentHtml = `
             <div style="width: 100%; height: 100%; display: flex; flex-direction: column; text-transform: ${textTransform}; font-weight: ${fontWeight}; font-style: ${fontStyle};">
-              <div style="flex: 0 0 auto; text-align: center; font-size: 2vw; color: ${theme.accent}; font-weight: 800; padding: 1vw 0;">${slide.reference}</div>
+              <div style="flex: 0 0 auto; text-align: center; font-size: 3.5vw; color: ${theme.accent}; font-weight: 800; padding: 0.5vw 0;">${slide.reference}</div>
               <div style="flex: 1 1 auto; display: flex; align-items: center; justify-content: center; text-align: center; color: ${theme.text}; overflow: hidden; padding: 0 3%;">
-                <div style="font-size: ${getFontSize(slide.text, 'scripture')}; line-height: 1.25;">&ldquo;${slide.text}&rdquo;</div>
+                <div style="font-size: ${getFontSize(slide.text, 'scripture')}; line-height: 1.2;">&ldquo;${slide.text}&rdquo;</div>
               </div>
             </div>
           `;
         } else if (slide.type === 'lyric') {
-          const totalChars = (slide.lines || []).join(' ').length;
-          const lineCount = (slide.lines || []).length;
-          let lyricBase;
-          if (lineCount <= 1) lyricBase = totalChars < 60 ? 52 : totalChars < 120 ? 38 : 28;
-          else if (lineCount <= 2) lyricBase = totalChars < 100 ? 44 : totalChars < 180 ? 34 : 26;
-          else if (lineCount <= 4) lyricBase = totalChars < 160 ? 36 : totalChars < 280 ? 28 : 22;
-          else lyricBase = totalChars < 300 ? 28 : 20;
-          const lyricFontSize = `${lyricBase * theme.sizeMultiplier * 0.1}vw`;
+          const lyricFontSize = getLyricFontSize(slide.lines || []);
           const linesHtml = (slide.lines || []).map(l => `<div>${l}</div>`).join('');
           contentHtml = `
             <div style="width: 100%; height: 100%; display: flex; flex-direction: column; text-transform: ${textTransform}; font-weight: ${fontWeight}; font-style: ${fontStyle};">
-              ${slide.label ? `<div style="flex: 0 0 auto; text-align: center; font-size: 1.5vw; color: ${theme.accent}; font-weight: 800; padding: 0.8vw 0; letter-spacing: 0.1em;">${slide.label}</div>` : ''}
+              ${slide.label ? `<div style="flex: 0 0 auto; text-align: center; font-size: 3vw; color: ${theme.accent}; font-weight: 800; padding: 0.5vw 0; letter-spacing: 0.1em;">${slide.label}</div>` : ''}
               <div style="flex: 1 1 auto; display: flex; align-items: center; justify-content: center; text-align: center; color: ${theme.text}; overflow: hidden; padding: 0 4%;">
-                <div style="font-size: ${lyricFontSize}; line-height: 1.4;">${linesHtml}</div>
+                <div style="font-size: ${lyricFontSize}; line-height: 1.2;">${linesHtml}</div>
               </div>
             </div>
           `;
@@ -272,7 +278,7 @@ function App() {
           <div class="overlay" style="background-color:${theme.card}; opacity:${theme.bgImage ? theme.overlayOpacity : 1};"></div>
           <div class="slide-content" style="font-family:${theme.fontFace};">
             ${contentHtml}
-          </div>
+          <div class="brand-watermark" style="color:${theme.accent};">By Gloreanne</div>
         `;
       };
 
@@ -429,15 +435,21 @@ function App() {
       else baseSize = 14;
     }
 
-    const scaled = baseSize * theme.sizeMultiplier;
-    return isPptx ? scaled : `${scaled * 0.1}vw`; // 0.1 factor to convert PPT size to approximate VW
+    const multiplier = (type === 'scripture') ? 1.0 : theme.sizeMultiplier;
+    const scaled = baseSize * multiplier;
+    return isPptx ? scaled : `${scaled * 0.14}cqw`;
   };
 
   const parseSermon = () => {
     const rawLines = sermonText.split('\n');
     let currentSlides = [];
 
-    // Extract Global Headers
+    // Service Header Detection (for filenames, not slides)
+    const firstLine = rawLines[0]?.trim()?.toLowerCase();
+    const isServiceHeader = (firstLine === 'divine service' || firstLine === 'sunday school');
+    const startIndex = isServiceHeader ? 1 : 0;
+
+    // Global Headers for the Title Slide
     const textMatch = sermonText.match(/Text:\s*(.*)/i);
     const subjectMatch = sermonText.match(/Subject:\s*(.*)/i);
     const title = subjectMatch ? subjectMatch[1].trim() : "Sermon";
@@ -445,43 +457,31 @@ function App() {
 
     currentSlides.push({
       type: 'title',
-      title: title,
+      title: title.toUpperCase(),
       subtitle: subtitle
     });
 
-    let contextStack = []; // [{indent: 0, text: "I. ..."}]
+    let contextStack = [];
 
-    rawLines.forEach(line => {
+    rawLines.slice(startIndex).forEach(line => {
       const trimmed = line.trim();
       if (!trimmed) return;
 
-      // Skip global title/subject
+      // Skip internal headers
       if (trimmed.toLowerCase().startsWith('text:') || trimmed.toLowerCase().startsWith('subject:')) return;
 
-      // 1. Calculate Indent
       const firstCharIndex = line.search(/\S/);
       const currentIndent = firstCharIndex === -1 ? 0 : firstCharIndex;
-
-      // 2. Adjust Context Stack (Smarter List Detection)
       const currentIsListItem = trimmed.match(/^([a-z0-9]+\.|[•\-\*])/i);
 
       while (contextStack.length > 0) {
         const last = contextStack[contextStack.length - 1];
-
-        // If current is less indented, pop
         if (currentIndent < last.indent) {
           contextStack.pop();
           continue;
         }
-
-        // If current is same indent
         if (currentIndent === last.indent) {
-          // If the last one was a "Header" (ended with colon) AND current is a list item, 
-          // we keep the header for this point.
-          if (last.text.endsWith(':') && currentIsListItem) {
-            break;
-          }
-          // Otherwise, it's a sibling, so pop the previous sibling
+          if (last.text.endsWith(':') && currentIsListItem) break;
           contextStack.pop();
           continue;
         }
@@ -489,15 +489,9 @@ function App() {
       }
 
       const parentContext = contextStack.length > 0 ? contextStack[contextStack.length - 1].text : "";
-
-      // 3. Detect Scripture (Handle hyphen - and en-dash \u2013)
       const scriptureRegex = /([1-9]?\s?[a-zA-Z]+\.?\s\d+:\d+([\-\u2013\u2014]\d+)?)/;
       const scriptureMatch = trimmed.match(scriptureRegex);
-
-      let ref = null;
-      if (scriptureMatch) {
-        ref = scriptureMatch[1].trim();
-      }
+      const ref = scriptureMatch ? scriptureMatch[1].trim() : null;
 
       if (ref) {
         const data = bibleCache[ref];
@@ -505,47 +499,15 @@ function App() {
           fetchVerseData(ref);
           currentSlides.push({ type: 'scripture', context: parentContext, reference: ref, version: 'English (KJV)', text: "Loading..." });
         } else if (data.error) {
-          currentSlides.push({
-            type: 'scripture',
-            context: parentContext,
-            reference: ref,
-            version: 'Error',
-            text: "Verse not found or API is offline. Ensure your Bible API server is running."
-          });
+          currentSlides.push({ type: 'scripture', context: parentContext, reference: ref, version: 'Error', text: "Verse not found." });
         } else {
-          // Normalize to handle both Array (from API) and String (from local JSON)
           const kjvArray = Array.isArray(data.KJV) ? data.KJV : [{ num: '', text: data.KJV }];
           const mbbArray = Array.isArray(data.MBBTAG) ? data.MBBTAG : (data.MBBTAG ? [{ num: '', text: data.MBBTAG }] : []);
-
-          kjvArray.forEach((verse) => {
-            currentSlides.push({
-              type: 'scripture',
-              context: parentContext,
-              reference: verse.num ? `${ref} (v.${verse.num})` : ref,
-              version: 'English (KJV)',
-              text: verse.text
-            });
-          });
-
-          mbbArray.forEach((verse) => {
-            currentSlides.push({
-              type: 'scripture',
-              context: parentContext,
-              reference: verse.num ? `${ref} (v.${verse.num})` : ref,
-              version: 'Tagalog (MBBTAG)',
-              text: verse.text
-            });
-          });
+          kjvArray.forEach(v => currentSlides.push({ type: 'scripture', context: parentContext, reference: v.num ? `${ref} (v.${v.num})` : ref, version: 'English (KJV)', text: v.text }));
+          mbbArray.forEach(v => currentSlides.push({ type: 'scripture', context: parentContext, reference: v.num ? `${ref} (v.${v.num})` : ref, version: 'Tagalog (MBBTAG)', text: v.text }));
         }
       } else {
-        // 4. Content Slide
-        currentSlides.push({
-          type: 'content',
-          mainTitle: parentContext,
-          title: trimmed
-        });
-
-        // Push current to stack for deeper indents
+        currentSlides.push({ type: 'content', mainTitle: parentContext, title: trimmed });
         contextStack.push({ indent: currentIndent, text: trimmed });
       }
     });
@@ -562,7 +524,7 @@ function App() {
     else if (lineCount <= 4) base = totalChars < 160 ? 36 : totalChars < 280 ? 28 : 22;
     else base = totalChars < 300 ? 28 : 20;
     const scaled = base * theme.sizeMultiplier;
-    return isPptx ? scaled : `${scaled * 0.1}vw`;
+    return isPptx ? scaled : `${scaled * 0.14}cqw`;
   };
 
   const generatePPTX = async () => {
@@ -681,8 +643,33 @@ function App() {
         }
       }
 
-      await pptx.writeFile({ fileName: `Sermon_${new Date().getTime()}.pptx` });
-      setStatus('Success! Opening download...');
+      // 1. Dynamic Filename Calculation
+      const now = new Date();
+      const monthDay = `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      const sanitize = (fn) => fn.replace(/[/\\?%*:|"<>]/g, '').replace(/\s+/g, '_').substring(0, 50);
+
+      let filename = 'presentation';
+      if (mode === 'lyrics') {
+        const first = slides[0];
+        if (first && first.lines && first.lines.length > 0) {
+          filename = first.lines[0];
+        } else if (first && (first.title || first.text)) {
+          filename = first.title || first.text;
+        } else {
+          filename = 'Song_Lyrics';
+        }
+      } else {
+        const firstLine = sermonText.trim().split('\n')[0].toLowerCase();
+        let serviceType = 'Sermon';
+        if (firstLine.includes('divine service')) serviceType = 'Divine_Service';
+        else if (firstLine.includes('sunday school')) serviceType = 'Sunday_School';
+        
+        filename = `${monthDay}_${serviceType}`;
+      }
+
+      // 2. Write File
+      await pptx.writeFile({ fileName: `${sanitize(filename)}.pptx` });
+      setStatus('Export Ready! Check downloads.');
     } catch (error) {
       console.error(error);
       setStatus('Error generating PowerPoint.');
@@ -697,10 +684,11 @@ function App() {
       <header>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <img src="/church-logo.png" alt="Church Logo" style={{ height: '40px', width: 'auto' }} />
-          <h1>SERMON FLOW <span>BBC</span></h1>
+          <h1>BBC <span>PRESENTATION</span></h1>
         </div>
         <div style={{ textAlign: 'right' }}>
           <p>PRESENTATION CONSOLE</p>
+          <p style={{ fontSize: '0.65rem', opacity: 0.8, color: theme.accent, marginTop: '2px', letterSpacing: '0.1em', fontWeight: 'bold' }}>BY GLOREANNE</p>
           <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 'bold', letterSpacing: '0.05em' }}>• {slides.length} SLIDES</div>
         </div>
       </header>
@@ -735,11 +723,11 @@ function App() {
                     </div>
                     <div style={{ display: 'flex', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--glass-border)', borderRadius: '6px', overflow: 'hidden' }}>
                       <button
-                        onClick={() => setMode('sermon')}
+                        onClick={() => { setMode('sermon'); setActiveSlideIndex(0); }}
                         style={{ padding: '0.25rem 0.75rem', fontSize: '0.65rem', fontWeight: 'bold', letterSpacing: '0.05em', border: 'none', cursor: 'pointer', background: mode === 'sermon' ? 'var(--primary)' : 'transparent', color: '#fff', transition: 'background 0.2s' }}
                       >SERMON</button>
                       <button
-                        onClick={() => setMode('lyrics')}
+                        onClick={() => { setMode('lyrics'); setActiveSlideIndex(0); }}
                         style={{ padding: '0.25rem 0.75rem', fontSize: '0.65rem', fontWeight: 'bold', letterSpacing: '0.05em', border: 'none', cursor: 'pointer', background: mode === 'lyrics' ? 'var(--primary)' : 'transparent', color: '#fff', transition: 'background 0.2s' }}
                       >LYRICS</button>
                     </div>
@@ -951,13 +939,13 @@ function App() {
                 boxSizing: 'border-box'
               }}>
                 {slides[activeSlideIndex].type === 'title' && (
-                  <div key={activeSlideIndex} className="slide-anim" style={{ textAlign: 'center', fontWeight: theme.bold ? '900' : '400', fontStyle: theme.italic ? 'italic' : 'normal', textTransform: theme.uppercase ? 'uppercase' : 'none', color: theme.titleColor }}>
+                  <div key={activeSlideIndex} className="slide-anim" style={{ textAlign: 'center', fontWeight: theme.bold ? '700' : '400', fontStyle: theme.italic ? 'italic' : 'normal', textTransform: theme.uppercase ? 'uppercase' : 'none', color: theme.titleColor }}>
                     <div style={{ fontSize: getDynamicFontSize(slides[activeSlideIndex].title, 'title'), letterSpacing: '-0.03em', lineHeight: '1.1', marginBottom: '1vw' }}>{slides[activeSlideIndex].title}</div>
                     <div style={{ fontSize: getDynamicFontSize(slides[activeSlideIndex].subtitle, 'subtitle'), color: theme.subtitleColor, fontWeight: '600' }}>{slides[activeSlideIndex].subtitle}</div>
                   </div>
                 )}
                 {slides[activeSlideIndex].type === 'content' && (
-                  <div key={activeSlideIndex} className="slide-anim" style={{ textAlign: 'center', textTransform: theme.uppercase ? 'uppercase' : 'none', fontWeight: theme.bold ? '900' : '400', fontStyle: theme.italic ? 'italic' : 'normal', color: theme.text, width: '100%' }}>
+                  <div key={activeSlideIndex} className="slide-anim" style={{ textAlign: 'center', textTransform: theme.uppercase ? 'uppercase' : 'none', fontWeight: theme.bold ? '700' : '400', fontStyle: theme.italic ? 'italic' : 'normal', color: theme.text, width: '100%' }}>
                     {slides[activeSlideIndex].mainTitle && (
                       <div style={{ fontSize: '1.5vw', color: theme.subtitleColor, marginBottom: '2vw', fontWeight: '700' }}>
                         {slides[activeSlideIndex].mainTitle.toUpperCase()}
@@ -974,11 +962,11 @@ function App() {
                 )}
                 {slides[activeSlideIndex].type === 'scripture' && (
                   <div key={activeSlideIndex} className="slide-anim" style={{ 
-                    width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
-                    textTransform: theme.uppercase ? 'uppercase' : 'none', fontWeight: theme.bold ? '900' : '400', 
+                    width: '100%', flex: 1, alignSelf: 'stretch', display: 'flex', flexDirection: 'column',
+                    textTransform: theme.uppercase ? 'uppercase' : 'none', fontWeight: theme.bold ? '700' : '400', 
                     fontStyle: theme.italic ? 'italic' : 'normal', color: theme.text 
                   }}>
-                    <div style={{ flex: '0 0 auto', textAlign: 'center', fontSize: '1.8vw', color: theme.accent, padding: '1vw 0 0.5vw', fontWeight: '800' }}>
+                    <div style={{ flex: '0 0 auto', textAlign: 'center', fontSize: '3.5cqw', color: theme.accent, padding: '0.5cqw 0 0.2cqw', fontWeight: '800' }}>
                       {slides[activeSlideIndex].reference}
                     </div>
                     <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', overflow: 'hidden', padding: '0 3%' }}>
@@ -990,19 +978,19 @@ function App() {
                 )}
                 {slides[activeSlideIndex].type === 'lyric' && (
                   <div key={activeSlideIndex} className="slide-anim" style={{
-                    width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
+                    width: '100%', flex: 1, alignSelf: 'stretch', display: 'flex', flexDirection: 'column',
                     textTransform: theme.uppercase ? 'uppercase' : 'none',
-                    fontWeight: theme.bold ? '900' : '400',
+                    fontWeight: theme.bold ? '700' : '400',
                     fontStyle: theme.italic ? 'italic' : 'normal',
                     color: theme.text
                   }}>
                     {slides[activeSlideIndex].label && (
-                      <div style={{ flex: '0 0 auto', textAlign: 'center', fontSize: '1.5vw', color: theme.accent, padding: '0.8vw 0 0.3vw', fontWeight: '800', letterSpacing: '0.1em' }}>
+                      <div style={{ flex: '0 0 auto', textAlign: 'center', fontSize: '3cqw', color: theme.accent, padding: '0.5cqw 0 0.2cqw', fontWeight: '800', letterSpacing: '0.1em' }}>
                         {slides[activeSlideIndex].label}
                       </div>
                     )}
                     <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', overflow: 'hidden', padding: '0 4%' }}>
-                      <div style={{ fontSize: getLyricFontSize(slides[activeSlideIndex].lines), lineHeight: '1.4' }}>
+                      <div style={{ fontSize: getLyricFontSize(slides[activeSlideIndex].lines), lineHeight: '1.2' }}>
                         {slides[activeSlideIndex].lines.map((line, i) => (
                           <div key={i}>{line}</div>
                         ))}
