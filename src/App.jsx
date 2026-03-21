@@ -621,14 +621,19 @@ function App() {
         }
         else if (slideData.type === 'scripture') {
           const scrLen = processText(slideData.text).length || 1;
-          // More conservative font size for scripture to prevent overlap
           const rawSize = Math.sqrt(280000 / scrLen); 
-          const pptxScriptureFontSize = Math.min(42, Math.max(12, Math.floor(rawSize))) * theme.sizeMultiplier;
+          const pptxScriptureFontSize = Math.min(44, Math.max(16, Math.floor(rawSize))) * theme.sizeMultiplier;
 
-          // Fixed Reference: Clear of the text area
-          slide.addText(processText(slideData.reference), {
-            x: 0.5, y: 0.3, w: 9.0, h: 0.7,
-            fontSize: 22 * theme.sizeMultiplier, 
+          // Safely append translation version to reference
+          let displayRef = slideData.reference;
+          if (slideData.version) {
+              const versionMatch = slideData.version.match(/\(([^)]+)\)/);
+              if (versionMatch) displayRef += ` (${versionMatch[1]})`;
+          }
+
+          slide.addText(processText(displayRef), {
+            x: 0.5, y: 0.3, w: 9.0, h: 0.8,
+            fontSize: 24 * theme.sizeMultiplier, 
             fontFace: theme.fontFace, 
             bold: true, 
             color: toPptxColor(theme.accent),
@@ -636,9 +641,8 @@ function App() {
             valign: "bottom"
           });
 
-          // Verse Text: Lower starting point (y: 1.7) to avoid any collision
-          slide.addText(processText(slideData.text), {
-            x: 0.75, y: 1.4, w: 8.5, h: 3.7,
+          slide.addText(processText(`\u201C${slideData.text}\u201D`), {
+            x: 0.5, y: 1.4, w: 9.0, h: 4.0,
             fontSize: pptxScriptureFontSize,
             fontFace: theme.fontFace,
             bold: theme.bold,
@@ -647,7 +651,9 @@ function App() {
             align: "center",
             valign: "middle",
             lineSpacing: 1.1,
-            shrinkText: true
+            shrinkText: true,
+            breakLine: true,
+            wrap: true
           });
         }
       }
