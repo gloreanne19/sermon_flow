@@ -442,12 +442,12 @@ function App() {
       else baseSize = 18;
     }
     else if (type === 'scripture') {
-      if (length < 60) baseSize = 46;
-      else if (length < 100) baseSize = 38;
-      else if (length < 160) baseSize = 30;
-      else if (length < 250) baseSize = 25;
-      else if (length < 380) baseSize = 21;
-      else baseSize = 17;
+      if (length < 60) baseSize = 53;
+      else if (length < 100) baseSize = 45;
+      else if (length < 160) baseSize = 37;
+      else if (length < 250) baseSize = 32;
+      else if (length < 380) baseSize = 28;
+      else baseSize = 24;
     }
 
     const multiplier = theme.sizeMultiplier;
