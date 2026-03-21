@@ -895,7 +895,7 @@ function App() {
               </button>
             </div>
           </div>
-          <div className="screen-container" style={{ position: 'relative', width: '100%', aspectRatio: '16/9', overflow: 'hidden', borderRadius: '8px', border: '1px solid var(--glass-border)', containerType: 'inline-size' }}>
+          <div className="screen-container" style={{ position: 'relative', width: '100%', maxWidth: 'calc((100vh - 12rem) * 16 / 9)', aspectRatio: '16/9', overflow: 'hidden', borderRadius: '8px', border: '1px solid var(--glass-border)', containerType: 'inline-size' }}>
             {slides[activeSlideIndex] && (
               <div className="projection-screen" ref={screenRef} style={{
                 visibility: isBlackout ? 'hidden' : 'visible',
