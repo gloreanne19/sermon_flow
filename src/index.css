@@ -455,7 +455,7 @@ select:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: calc((100vh - 12rem) * 9 / 16);
+  max-width: calc((100vh - 12rem) * 16 / 9);
   z-index: 10;
 }
 
@@ -483,9 +483,9 @@ select:focus {
 }
 
 .projection-screen {
-  /* Scale to 9:16 layout limits */
-  height: clamp(300px, 75vh, 1000px);
-  aspect-ratio: 9 / 16;
+  /* Lock to 16:9 layout limits */
+  width: min(100%, calc((100vh - 12rem) * 16 / 9));
+  aspect-ratio: 16 / 9;
   flex-shrink: 0;
   border-radius: 8px;
   display: flex;

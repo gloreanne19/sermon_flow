@@ -183,8 +183,8 @@ function App() {
       // Inject Styles
       const style = projectorWindow.document.createElement('style');
       style.textContent = `
-        body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; overflow: hidden; }
-        #projector-root { height: 100vh; aspect-ratio: 9 / 16; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; background: #000; }
+        body { margin: 0; font-family: sans-serif; }
+        #projector-root { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; background: #000; }
         .slide-content { text-align: center; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 5%; box-sizing: border-box; z-index: 1; transition: opacity 0.5s ease; }
         .overlay { position: absolute; inset: 0; z-index: 0; }
         .background { position: absolute; inset: 0; background-size: cover; background-position: center; z-index: -1; }
@@ -548,8 +548,7 @@ function App() {
 
     try {
       let pptx = new pptxgen();
-      pptx.defineLayout({ name: 'LAYOUT_9x16', width: 5.625, height: 10 });
-      pptx.layout = 'LAYOUT_9x16';
+      pptx.layout = "LAYOUT_16x9";
 
       // Helper to ensure PPTX colors are 6-digit hex without alpha or '#'
       for (const slideData of slides) {
@@ -563,7 +562,7 @@ function App() {
 
         // Card Overlay / Slide Surface
         slide.addShape(pptx.ShapeType.rect, {
-          x: 0, y: 0, w: 5.625, h: 10,
+          x: 0, y: 0, w: 10, h: 5.625,
           fill: {
             color: toPptxColor(theme.card),
             alpha: theme.bgImage ? (theme.overlayOpacity * 100) : 0 // Fully opaque card if no image
@@ -574,14 +573,14 @@ function App() {
 
         if (slideData.type === 'title') {
           slide.addText(processText(slideData.title), {
-            x: 0.5, y: 2.0, w: 4.625, h: 3.0,
+            x: 0.5, y: 1.2, w: 9.0, h: 2.0,
             fontSize: getDynamicFontSize(slideData.title, 'title', true),
             fontFace: theme.fontFace,
             bold: theme.bold, italic: theme.italic, color: toPptxColor(theme.titleColor),
             align: "center", valign: "middle", shrinkText: true
           });
           slide.addText(processText(slideData.subtitle), {
-            x: 0.5, y: 5.5, w: 4.625, h: 1.5,
+            x: 0.5, y: 3.5, w: 9, h: 1,
             fontSize: getDynamicFontSize(slideData.subtitle, 'subtitle', true),
             fontFace: theme.fontFace,
             bold: theme.bold, italic: theme.italic, color: toPptxColor(theme.subtitleColor),
@@ -590,7 +589,7 @@ function App() {
         }
         else if (slideData.type === 'content') {
           slide.addText(processText(slideData.title), {
-            x: 0.5, y: 1.0, w: 4.625, h: 8.0,
+            x: 0.5, y: 0.5, w: 9.0, h: 4.625,
             fontSize: getDynamicFontSize(slideData.title, 'content', true),
             fontFace: theme.fontFace,
             bold: theme.bold, italic: theme.italic, color: toPptxColor(theme.text),
@@ -602,7 +601,7 @@ function App() {
 
           if (slideData.label) {
             slide.addText(processText(slideData.label), {
-              x: 0.5, y: 0.8, w: 4.625, h: 0.8,
+              x: 0.5, y: 0.3, w: 9.0, h: 0.6,
               fontSize: 20 * theme.sizeMultiplier, fontFace: theme.fontFace,
               bold: true, color: toPptxColor(theme.accent),
               align: 'center', valign: 'bottom'
@@ -610,8 +609,8 @@ function App() {
           }
 
           slide.addText(processText(slideData.text), {
-            x: 0.5, y: slideData.label ? 1.8 : 1.0,
-            w: 4.625, h: slideData.label ? 7.2 : 8.0,
+            x: 0.5, y: slideData.label ? 1.2 : 0.5,
+            w: 9.0, h: slideData.label ? 3.9 : 4.625,
             fontSize: lyricFontSize,
             fontFace: theme.fontFace,
             bold: theme.bold, italic: theme.italic,
@@ -628,7 +627,7 @@ function App() {
 
           // Fixed Reference: Clear of the text area
           slide.addText(processText(slideData.reference), {
-            x: 0.5, y: 0.8, w: 4.625, h: 0.8,
+            x: 0.5, y: 0.3, w: 9.0, h: 0.7,
             fontSize: 22 * theme.sizeMultiplier, 
             fontFace: theme.fontFace, 
             bold: true, 
@@ -639,7 +638,7 @@ function App() {
 
           // Verse Text: Lower starting point (y: 1.7) to avoid any collision
           slide.addText(processText(slideData.text), {
-            x: 0.5, y: 1.8, w: 4.625, h: 7.2,
+            x: 0.75, y: 1.4, w: 8.5, h: 3.7,
             fontSize: pptxScriptureFontSize,
             fontFace: theme.fontFace,
             bold: theme.bold,
@@ -894,7 +893,7 @@ function App() {
               </button>
             </div>
           </div>
-          <div className="screen-container" style={{ position: 'relative', width: '100%', aspectRatio: '9/16', overflow: 'hidden', borderRadius: '8px', border: '1px solid var(--glass-border)', containerType: 'inline-size' }}>
+          <div className="screen-container" style={{ position: 'relative', width: '100%', aspectRatio: '16/9', overflow: 'hidden', borderRadius: '8px', border: '1px solid var(--glass-border)', containerType: 'inline-size' }}>
             {slides[activeSlideIndex] && (
               <div className="projection-screen" ref={screenRef} style={{
                 visibility: isBlackout ? 'hidden' : 'visible',
