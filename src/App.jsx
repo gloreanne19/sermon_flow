@@ -59,6 +59,21 @@ const getInitialCache = () => {
 
 const LABEL_REGEX = /^(verse|chorus|bridge|pre-chorus|tag|outro|intro|refrain|hook|coda)\s*[IVXivx\d]*\.?$/i;
 
+const cleanColor = (color) => {
+  if (!color) return '#1a1a1a';
+  if (typeof color !== 'string') return color;
+  // Strip alpha channel (#RRGGBBAA -> #RRGGBB)
+  if (color.startsWith('#') && color.length === 9) return color.substring(0, 7);
+  return color;
+};
+
+const toPptxColor = (hex) => {
+  if (!hex) return '000000';
+  let cleaned = hex.startsWith('#') ? hex.substring(1) : hex;
+  if (cleaned.length > 6) cleaned = cleaned.substring(0, 6);
+  return cleaned.toUpperCase();
+};
+
 function App() {
   const [sermonText, setSermonText] = useState(DEFAULT_SERMON);
   const [lyricsText, setLyricsText] = useState(DEFAULT_LYRICS);
