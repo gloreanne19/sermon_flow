@@ -649,11 +649,7 @@ function App() {
             italic: theme.italic,
             color: toPptxColor(theme.text),
             align: "center",
-            valign: "middle",
-            lineSpacing: 1.1,
-            shrinkText: true,
-            breakLine: true,
-            wrap: true
+            valign: "middle"
           });
         }
       }
