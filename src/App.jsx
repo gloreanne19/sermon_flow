@@ -535,20 +535,28 @@ function App() {
       let pptx = new pptxgen();
       pptx.layout = "LAYOUT_16x9";
 
-      for (const slideData of slides.filter(s => s.type !== 'title')) {
+      // Helper to ensure PPTX colors are 6-digit hex without alpha or '#'
+      const toPptxColor = (hex) => {
+        if (!hex) return '000000';
+        let cleaned = hex.replace('#', '');
+        if (cleaned.length === 8) cleaned = cleaned.substring(0, 6);
+        return cleaned;
+      };
+
+      for (const slideData of slides) {
         let slide = pptx.addSlide();
 
         if (theme.bgImage) {
           slide.background = { data: theme.bgImage };
         } else {
-          slide.background = { color: theme.bg.replace('#', '') };
+          slide.background = { color: toPptxColor(theme.bg) };
         }
 
         // Card Overlay / Slide Surface
         slide.addShape(pptx.ShapeType.rect, {
           x: 0, y: 0, w: 10, h: 5.625,
           fill: {
-            color: theme.card.replace('#', ''),
+            color: toPptxColor(theme.card),
             alpha: theme.bgImage ? (theme.overlayOpacity * 100) : 0 // Fully opaque card if no image
           }
         });
@@ -560,7 +568,7 @@ function App() {
             x: 0.25, y: 1, w: 9.5, h: 2.5,
             fontSize: getDynamicFontSize(slideData.title, 'title', true),
             fontFace: theme.fontFace,
-            bold: theme.bold, italic: theme.italic, color: theme.titleColor.replace('#', ''),
+            bold: theme.bold, italic: theme.italic, color: toPptxColor(theme.titleColor),
             align: "center", valign: "middle",
             shrinkText: true
           });
@@ -568,7 +576,7 @@ function App() {
             x: 0.5, y: 3.5, w: 9, h: 1,
             fontSize: getDynamicFontSize(slideData.subtitle, 'subtitle', true),
             fontFace: theme.fontFace,
-            bold: theme.bold, italic: theme.italic, color: theme.subtitleColor.replace('#', ''),
+            bold: theme.bold, italic: theme.italic, color: toPptxColor(theme.subtitleColor),
             align: "center", valign: "top",
             shrinkText: true
           });
@@ -581,7 +589,7 @@ function App() {
             fontFace: theme.fontFace,
             bold: theme.bold,
             italic: theme.italic,
-            color: theme.text.replace('#', ''),
+            color: toPptxColor(theme.text),
             align: "center",
             valign: "middle",
             shrinkText: true
@@ -596,7 +604,7 @@ function App() {
             slide.addText(theme.uppercase ? slideData.label.toUpperCase() : slideData.label, {
               x: 0.25, y: 0.15, w: 9.5, h: 0.6,
               fontSize: 18 * theme.sizeMultiplier, fontFace: theme.fontFace,
-              bold: true, color: theme.accent.replace('#', ''),
+              bold: true, color: toPptxColor(theme.accent),
               align: 'center', valign: 'middle', shrinkText: true
             });
           }
@@ -607,35 +615,29 @@ function App() {
             fontSize: lyricFontSize,
             fontFace: theme.fontFace,
             bold: theme.bold, italic: theme.italic,
-            color: theme.text.replace('#', ''),
+            color: toPptxColor(theme.text),
             align: 'center', valign: 'middle',
             shrinkText: true, breakLine: true
           });
         }
         else if (slideData.type === 'scripture') {
-          // Dedicated PPTX font-size calculator for scripture text.
-          // Text box area: 9.5" wide x 4.5" tall.
-          // At font size F (pts): chars/line = 9.5*72 / (F*0.55) = 1243/F
-          //                       lines available = 4.5*72 / (F*1.25) = 259/F
-          // Capacity = 1243/F * 259/F = 322,037 / F²  → F = sqrt(322037 / length)
-          // Capped at 54pt max and 12pt min.
           const scrLen = processText(slideData.text).length || 1;
           const rawSize = Math.sqrt(322037 / scrLen);
           const pptxScriptureFontSize = Math.min(54, Math.max(12, Math.floor(rawSize))) * theme.sizeMultiplier;
 
           slide.addText(processText(slideData.reference), {
-            x: 0.25, y: 0.2, w: 9.5, h: 0.75,
-            fontSize: 24 * theme.sizeMultiplier, fontFace: theme.fontFace, bold: true, color: theme.accent.replace('#', ''),
-            align: "center", valign: "middle", shrinkText: true
+            x: 0.25, y: 0.3, w: 9.5, h: 0.6,
+            fontSize: 22 * theme.sizeMultiplier, fontFace: theme.fontFace, bold: true, color: toPptxColor(theme.accent),
+            align: "center", valign: "top", shrinkText: true
           });
 
           slide.addText(processText(slideData.text), {
-            x: 0.25, y: 0.95, w: 9.5, h: 4.5,
+            x: 0.5, y: 1.1, w: 9.0, h: 4.2,
             fontSize: pptxScriptureFontSize,
             fontFace: theme.fontFace,
             bold: theme.bold,
             italic: theme.italic,
-            color: theme.text.replace('#', ''),
+            color: toPptxColor(theme.text),
             align: "center",
             valign: "middle",
             shrinkText: true
