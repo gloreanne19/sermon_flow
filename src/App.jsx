@@ -496,7 +496,6 @@ function App() {
           continue;
         }
         if (currentIndent === last.indent) {
-          if (last.text.endsWith(':') && currentIsListItem) break;
           contextStack.pop();
           continue;
         }
