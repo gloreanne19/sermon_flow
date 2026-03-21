@@ -620,10 +620,6 @@ function App() {
           });
         }
         else if (slideData.type === 'scripture') {
-          const scrLen = processText(slideData.text).length || 1;
-          const rawSize = Math.sqrt(280000 / scrLen); 
-          const pptxScriptureFontSize = Math.min(44, Math.max(16, Math.floor(rawSize))) * theme.sizeMultiplier;
-
           // Safely append translation version to reference
           let displayRef = slideData.reference;
           if (slideData.version) {
@@ -631,6 +627,7 @@ function App() {
               if (versionMatch) displayRef += ` (${versionMatch[1]})`;
           }
 
+          // Fixed Reference: Clear of the text area
           slide.addText(processText(displayRef), {
             x: 0.5, y: 0.3, w: 9.0, h: 0.8,
             fontSize: 24 * theme.sizeMultiplier, 
@@ -641,15 +638,18 @@ function App() {
             valign: "bottom"
           });
 
+          // Verse Text: Lower starting point to avoid any collision
           slide.addText(processText(`\u201C${slideData.text}\u201D`), {
             x: 0.5, y: 1.4, w: 9.0, h: 4.0,
-            fontSize: pptxScriptureFontSize,
+            fontSize: getDynamicFontSize(slideData.text, 'scripture', true),
             fontFace: theme.fontFace,
             bold: theme.bold,
             italic: theme.italic,
             color: toPptxColor(theme.text),
             align: "center",
-            valign: "middle"
+            valign: "middle",
+            wrap: true,
+            autoFit: true
           });
         }
       }
