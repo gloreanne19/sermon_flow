@@ -442,15 +442,15 @@ function App() {
       else baseSize = 18;
     }
     else if (type === 'scripture') {
-      if (length < 60) baseSize = 36;
-      else if (length < 100) baseSize = 30;
-      else if (length < 160) baseSize = 24;
-      else if (length < 250) baseSize = 20;
-      else if (length < 380) baseSize = 17;
-      else baseSize = 14;
+      if (length < 60) baseSize = 46;
+      else if (length < 100) baseSize = 38;
+      else if (length < 160) baseSize = 30;
+      else if (length < 250) baseSize = 25;
+      else if (length < 380) baseSize = 21;
+      else baseSize = 17;
     }
 
-    const multiplier = (type === 'scripture') ? 1.0 : theme.sizeMultiplier;
+    const multiplier = theme.sizeMultiplier;
     const scaled = baseSize * multiplier;
     return isPptx ? scaled : `${scaled * 0.14}cqw`;
   };
