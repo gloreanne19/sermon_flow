@@ -3,8 +3,8 @@
 :root {
   --primary: #6366f1;
   --primary-glow: rgba(99, 102, 241, 0.6);
-  --accent: #ec4899;
-  --accent-glow: rgba(236, 72, 153, 0.5);
+  --accent: #38bdf8;
+  --accent-glow: rgba(56, 189, 248, 0.5);
   --bg-dark: #0f1115;
   --bg-sidebar: rgba(18, 20, 28, 0.6);
   --bg-card: rgba(30, 33, 43, 0.5);
@@ -38,7 +38,7 @@ body {
   display: flex;
   flex-direction: column;
   background: radial-gradient(circle at top left, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
-              radial-gradient(circle at bottom right, rgba(236, 72, 153, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at bottom right, rgba(56, 189, 248, 0.15) 0%, transparent 50%),
               radial-gradient(circle at center, rgba(30, 30, 40, 0.8) 0%, var(--bg-dark) 100%);
 }
 
@@ -260,7 +260,7 @@ textarea:focus {
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 25px rgba(236, 72, 153, 0.4);
+  box-shadow: 0 12px 25px rgba(56, 189, 248, 0.4);
 }
 
 .btn-glass {
@@ -307,8 +307,8 @@ textarea:focus {
 .blackout-btn.active {
   background: #000;
   color: var(--accent);
-  border-color: rgba(236, 72, 153, 0.5);
-  box-shadow: 0 0 15px rgba(236, 72, 153, 0.3);
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
 }
 
 .cues-list {
