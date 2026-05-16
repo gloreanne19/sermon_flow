@@ -171,7 +171,7 @@ function App() {
       'SermonFlowProjector',
       `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no`
     );
-
+ 
     if (projectorWindow) {
       projectorWindow.document.title = "Sermon Flow - Projector";
       projectorWindow.document.body.style.margin = '0';
@@ -519,8 +519,8 @@ function App() {
         } else {
           const kjvArray = Array.isArray(data.KJV) ? data.KJV : [{ num: '', text: data.KJV }];
           const mbbArray = Array.isArray(data.MBBTAG) ? data.MBBTAG : (data.MBBTAG ? [{ num: '', text: data.MBBTAG }] : []);
-          kjvArray.forEach(v => currentSlides.push({ type: 'scripture', context: parentContext, reference: v.num ? `${ref} (v.${v.num})` : ref, version: 'English (KJV)', text: v.text, verseNum: v.num }));
-          mbbArray.forEach(v => currentSlides.push({ type: 'scripture', context: parentContext, reference: v.num ? `${ref} (v.${v.num})` : ref, version: 'Tagalog (MBBTAG)', text: v.text, verseNum: v.num }));
+          kjvArray.forEach(v => currentSlides.push({ type: 'scripture', context: parentContext, reference: ref, version: 'English (KJV)', text: v.text, verseNum: v.num }));
+          mbbArray.forEach(v => currentSlides.push({ type: 'scripture', context: parentContext, reference: ref, version: 'Tagalog (MBBTAG)', text: v.text, verseNum: v.num }));
         }
       } else {
         currentSlides.push({ type: 'content', mainTitle: parentContext, title: trimmed });
