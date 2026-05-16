@@ -430,6 +430,20 @@ function App() {
     }
   };
 
+  const handleDefaultBg = async () => {
+    try {
+      const response = await fetch('/sermon_default_bg.png');
+      const blob = await response.blob();
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setTheme({ ...theme, bgImage: reader.result });
+      };
+      reader.readAsDataURL(blob);
+    } catch (e) {
+      console.error("Failed to load default bg", e);
+    }
+  };
+
   const getDynamicFontSize = (text, type, isPptx = false) => {
     let baseSize = 40;
     const length = text?.length || 0;
@@ -803,11 +817,14 @@ function App() {
 
                 <div className="theme-field">
                   <label>Background Image</label>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <input type="file" accept="image/*" onChange={handleImageUpload} />
-                    {theme.bgImage && (
-                      <button onClick={() => setTheme({ ...theme, bgImage: null })} className="clear-img">X</button>
-                    )}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <button onClick={handleDefaultBg} className="btn btn-glass" style={{ flex: 1, padding: '0.5rem', fontSize: '0.75rem' }}>Default</button>
+                      <input type="file" accept="image/*" onChange={handleImageUpload} style={{ flex: 2, width: '100%' }} />
+                      {theme.bgImage && (
+                        <button onClick={() => setTheme({ ...theme, bgImage: null })} className="clear-img">X</button>
+                      )}
+                    </div>
                   </div>
                 </div>
 
