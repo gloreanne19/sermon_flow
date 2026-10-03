@@ -473,7 +473,8 @@ function App() {
     let currentSlides = [];
 
     // Service Header Detection (for filenames, not slides)
-    const firstLine = rawLines[0]?.trim()?.toLowerCase();
+    // Tolerate a trailing period: "Divine Service." is still the service header.
+    const firstLine = rawLines[0]?.trim().replace(/\.+$/, '').toLowerCase();
     const isServiceHeader = (firstLine === 'divine service' || firstLine === 'sunday school');
     const startIndex = isServiceHeader ? 1 : 0;
 
@@ -516,7 +517,9 @@ function App() {
       }
 
       const parentContext = contextStack.length > 0 ? contextStack[contextStack.length - 1].text : "";
-      const scriptureRegex = /([1-9]?\s?[a-zA-Z]+\.?\s\d+:\d+([\-\u2013\u2014]\d+)?)/;
+      // Only lines that START with a reference become verse slides (an optional
+      // bullet is allowed). Headers like "4 PHRASES OF JOB 1:21" stay as text.
+      const scriptureRegex = /^(?:[\u2022\-\*]\s*)?([1-9]?\s?[a-zA-Z]+\.?\s\d+:\d+([\-\u2013\u2014]\d+)?)/;
       const scriptureMatch = trimmed.match(scriptureRegex);
       const ref = scriptureMatch ? scriptureMatch[1].trim() : null;
 
