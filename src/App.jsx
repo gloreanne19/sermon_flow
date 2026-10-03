@@ -94,6 +94,7 @@ function App() {
     titleColor: '#000000',
     subtitleColor: '#666666',
     accent: '#f13f48ff',
+    band: '#D62400',
     fontFace: 'Arial',
     sizeMultiplier: 1.0,
     uppercase: true,
@@ -214,24 +215,22 @@ function App() {
         const getFontSize = (text, type) => {
           let baseSize = 40;
           const length = text?.length || 0;
-          if (type === 'title') baseSize = length > 40 ? 35 : 48;
-          else if (type === 'subtitle') baseSize = 22;
-          else if (type === 'content') {
-            if (length < 30) baseSize = 50;
-            else if (length < 60) baseSize = 38;
-            else if (length < 120) baseSize = 28;
-            else if (length < 200) baseSize = 22;
-            else baseSize = 18;
+          if (type === 'title') baseSize = 60;          // subject on the title slide
+          else if (type === 'subtitle') baseSize = 54;  // reference on the red band
+          else if (type === 'header') baseSize = 72;    // standalone section header
+          else if (type === 'content') {                // sub-point body
+            if (length <= 41) baseSize = 54;
+            else if (length <= 55) baseSize = 48;
+            else if (length <= 85) baseSize = 44;
+            else baseSize = 36;
           }
           else if (type === 'scripture') {
-            if (length < 60) baseSize = 53;
-            else if (length < 100) baseSize = 45;
-            else if (length < 160) baseSize = 37;
-            else if (length < 250) baseSize = 32;
-            else if (length < 380) baseSize = 28;
-            else baseSize = 24;
+            if (length <= 60) baseSize = 53;
+            else if (length <= 100) baseSize = 45;
+            else if (length <= 160) baseSize = 37;
+            else baseSize = 32;
           }
-          
+
           const multiplier = theme.sizeMultiplier;
           return `${baseSize * multiplier * 0.14}vw`;
         };
@@ -254,24 +253,24 @@ function App() {
 
         if (slide.type === 'title') {
           contentHtml = `
-            <div style="text-align:center; font-weight:${fontWeight}; font-style:${fontStyle}; text-transform:${textTransform}; color:${theme.titleColor};">
-              <div style="font-size:${getFontSize(slide.title, 'title')}; line-height:1.1; margin-bottom:1vw;">${slide.title}</div>
-              <div style="font-size:${getFontSize(slide.subtitle, 'subtitle')}; color:${theme.subtitleColor}; font-weight:600;">${slide.subtitle || ''}</div>
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; font-weight:${fontWeight}; font-style:${fontStyle}; text-transform:${textTransform};">
+              <div style="background-color:${theme.band}; padding:0.6vw 2.5vw; color:#FFFFFF; font-size:${getFontSize(slide.subtitle, 'subtitle')}; font-weight:700; line-height:1.15;">${slide.subtitle || ''}</div>
+              <div style="font-size:${getFontSize(slide.title, 'title')}; color:${theme.titleColor}; font-weight:700; line-height:1.05; margin-top:1.4vw; text-shadow: 2px 0 0 #FFFFFF, -2px 0 0 #FFFFFF, 0 2px 0 #FFFFFF, 0 -2px 0 #FFFFFF, 1px 1px 0 #FFFFFF, -1px -1px 0 #FFFFFF, 1px -1px 0 #FFFFFF, -1px 1px 0 #FFFFFF;">${slide.title}</div>
             </div>
           `;
         } else if (slide.type === 'content') {
           contentHtml = `
             <div style="width: 100%; height: 100%; display: flex; flex-direction: column; text-transform: ${textTransform}; font-weight: ${fontWeight}; font-style: ${fontStyle}; color: ${theme.text};">
-              ${slide.mainTitle ? `<div style="flex: 0 0 auto; text-align: center; font-size: 3.5vw; color: ${theme.accent}; font-weight: 800; padding: 0.5vw 0;">${slide.mainTitle}</div>` : ''}
+              ${slide.mainTitle ? `<div style="flex: 0 0 auto; text-align: center; font-size: 5.6vw; color: ${theme.bgImage ? '#FFFFFF' : theme.accent}; font-weight: 800; padding: 0.5vw 0;">${slide.mainTitle}</div>` : ''}
               <div style="flex: 1 1 auto; display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; padding: 0 4%;">
-                <div style="font-size:${getFontSize(slide.title, 'content')}; line-height:1.2;">${slide.title}</div>
+                <div style="font-size:${getFontSize(slide.title, slide.mainTitle ? 'content' : 'header')}; line-height:1.2;">${slide.title}</div>
               </div>
             </div>
           `;
         } else if (slide.type === 'scripture') {
           contentHtml = `
             <div style="width: 100%; height: 100%; display: flex; flex-direction: column; text-transform: ${textTransform}; font-weight: ${fontWeight}; font-style: ${fontStyle};">
-              <div style="flex: 0 0 auto; text-align: center; font-size: 3.5vw; color: ${theme.accent}; font-weight: 800; padding: 0.5vw 0;">${slide.reference}</div>
+              <div style="flex: 0 0 auto; text-align: center; font-size: 5vw; color: ${theme.accent}; font-weight: 800; padding: 0.5vw 0;">${slide.reference}</div>
               <div style="flex: 1 1 auto; display: flex; align-items: center; justify-content: center; text-align: center; color: ${theme.text}; overflow: hidden; padding: 0 3%;">
                 <div style="font-size: ${getFontSize(slide.text, 'scripture')}; line-height: 1.2;">${slide.verseNum ? `<sup style="font-size: 0.6em; opacity: 0.8; margin-right: 0.1em;">${slide.verseNum}</sup>` : ''}&ldquo;${slide.text}&rdquo;</div>
               </div>
@@ -292,7 +291,7 @@ function App() {
 
         root.innerHTML = `
           <div class="background" style="background-color:${theme.bg}; background-image:${theme.bgImage ? `url(${theme.bgImage})` : 'none'};"></div>
-          <div class="overlay" style="background-color:${theme.card}; opacity:${theme.bgImage ? theme.overlayOpacity : 1};"></div>
+          <div class="overlay" style="background-color:${theme.card}; opacity:${theme.bgImage ? (slide.type === 'title' ? theme.overlayOpacity : 1 - theme.overlayOpacity) : 1};"></div>
           <div class="slide-content" style="font-family:${theme.fontFace};">
             ${contentHtml}
           <div class="brand-watermark" style="color:${theme.accent};">By Gloreanne</div>
@@ -448,22 +447,20 @@ function App() {
     let baseSize = 40;
     const length = text?.length || 0;
 
-    if (type === 'title') baseSize = length > 40 ? 35 : 48;
-    else if (type === 'subtitle') baseSize = 22;
-    else if (type === 'content') {
-      if (length < 30) baseSize = 50;
-      else if (length < 60) baseSize = 38;
-      else if (length < 120) baseSize = 28;
-      else if (length < 200) baseSize = 22;
-      else baseSize = 18;
+    if (type === 'title') baseSize = 60;          // subject on the title slide
+    else if (type === 'subtitle') baseSize = 54;  // reference on the red band
+    else if (type === 'header') baseSize = 72;    // standalone section header
+    else if (type === 'content') {                // sub-point body
+      if (length <= 41) baseSize = 54;
+      else if (length <= 55) baseSize = 48;
+      else if (length <= 85) baseSize = 44;
+      else baseSize = 36;
     }
     else if (type === 'scripture') {
-      if (length < 60) baseSize = 53;
-      else if (length < 100) baseSize = 45;
-      else if (length < 160) baseSize = 37;
-      else if (length < 250) baseSize = 32;
-      else if (length < 380) baseSize = 28;
-      else baseSize = 24;
+      if (length <= 60) baseSize = 53;
+      else if (length <= 100) baseSize = 45;
+      else if (length <= 160) baseSize = 37;
+      else baseSize = 32;
     }
 
     const multiplier = theme.sizeMultiplier;
@@ -580,35 +577,46 @@ function App() {
           x: 0, y: 0, w: 10, h: 5.625,
           fill: {
             color: toPptxColor(theme.card),
-            alpha: theme.bgImage ? (theme.overlayOpacity * 100) : 0 // Fully opaque card if no image
+            // pptxgen `alpha` is transparency. Content slides: light white wash at
+            // (1 - overlayOpacity) — default 20%. Title slide: strong wash so the
+            // photo reads as a dimmed cover (default 80% opaque).
+            alpha: theme.bgImage ? ((slideData.type === 'title' ? 1 - theme.overlayOpacity : theme.overlayOpacity) * 100) : 0
           }
         });
 
         const processText = (txt) => theme.uppercase ? (txt || "").toUpperCase() : (txt || "");
+        const contextColor = theme.bgImage ? 'FFFFFF' : toPptxColor(theme.accent);
 
         if (slideData.type === 'title') {
+          // Red band with the Bible reference in white
+          slide.addShape(pptx.ShapeType.rect, {
+            x: 1.04, y: 2.10, w: 7.92, h: 0.91,
+            fill: { color: toPptxColor(theme.band) }
+          });
+          slide.addText(processText(slideData.subtitle), {
+            x: 1.04, y: 2.10, w: 7.92, h: 0.91,
+            fontSize: getDynamicFontSize(slideData.subtitle, 'subtitle', true),
+            fontFace: theme.fontFace,
+            bold: true, color: 'FFFFFF',
+            align: "center", valign: "middle", shrinkText: true
+          });
+          // Subject below the band: dark text with a white outline
           slide.addText(processText(slideData.title), {
-            x: 0.5, y: 1.2, w: 9.0, h: 2.0,
+            x: 0.5, y: 3.15, w: 9.0, h: 1.9,
             fontSize: getDynamicFontSize(slideData.title, 'title', true),
             fontFace: theme.fontFace,
             bold: theme.bold, italic: theme.italic, color: toPptxColor(theme.titleColor),
-            align: "center", valign: "middle", shrinkText: true
-          });
-          slide.addText(processText(slideData.subtitle), {
-            x: 0.5, y: 3.5, w: 9, h: 1,
-            fontSize: getDynamicFontSize(slideData.subtitle, 'subtitle', true),
-            fontFace: theme.fontFace,
-            bold: theme.bold, italic: theme.italic, color: toPptxColor(theme.subtitleColor),
-            align: "center", valign: "top", shrinkText: true
+            outline: { color: 'FFFFFF', size: 1.5 },
+            align: "center", valign: "top", wrap: true, shrinkText: true
           });
         }
         else if (slideData.type === 'content') {
           if (slideData.mainTitle) {
             slide.addText(processText(slideData.mainTitle), {
-              x: 0.5, y: 0.3, w: 9.0, h: 0.8,
-              fontSize: 24 * theme.sizeMultiplier,
+              x: 0.5, y: 0.35, w: 9.0, h: 0.8,
+              fontSize: 40 * theme.sizeMultiplier,
               fontFace: theme.fontFace,
-              bold: true, color: toPptxColor(theme.accent),
+              bold: true, color: contextColor,
               align: "center", valign: "bottom"
             });
             slide.addText(processText(slideData.title), {
@@ -620,8 +628,8 @@ function App() {
             });
           } else {
             slide.addText(processText(slideData.title), {
-              x: 0.5, y: 0.5, w: 9.0, h: 4.625,
-              fontSize: getDynamicFontSize(slideData.title, 'content', true),
+              x: 0.5, y: 1.0, w: 9.0, h: 3.6,
+              fontSize: getDynamicFontSize(slideData.title, 'header', true),
               fontFace: theme.fontFace,
               bold: theme.bold, italic: theme.italic, color: toPptxColor(theme.text),
               align: "center", valign: "middle", wrap: true, autoFit: true
@@ -657,7 +665,7 @@ function App() {
 
           slide.addText(processText(displayRef), {
             x: 0.5, y: 0.3, w: 9.0, h: 0.8,
-            fontSize: 24 * theme.sizeMultiplier, 
+            fontSize: 36 * theme.sizeMultiplier,
             fontFace: theme.fontFace, 
             bold: true, 
             color: toPptxColor(theme.accent),
@@ -865,6 +873,11 @@ function App() {
                   </div>
                 </div>
 
+                <div className="theme-field">
+                  <label>Band (Title Slide)</label>
+                  <input type="color" value={cleanColor(theme.band)} onChange={(e) => setTheme({ ...theme, band: e.target.value })} />
+                </div>
+
                 <div className="grid-2">
                   <div className="theme-field">
                     <label>Body Text</label>
@@ -877,7 +890,7 @@ function App() {
                 </div>
 
                 <div className="theme-field">
-                  <label>Overlay Opacity: {(theme.overlayOpacity * 100).toFixed(0)}%</label>
+                  <label>Wash (Overlay): {((1 - theme.overlayOpacity) * 100).toFixed(0)}%</label>
                   <input type="range" min="0" max="1" step="0.05" value={theme.overlayOpacity} onChange={(e) => setTheme({ ...theme, overlayOpacity: parseFloat(e.target.value) })} />
                 </div>
 
@@ -948,7 +961,9 @@ function App() {
                   position: 'absolute',
                   inset: 0,
                   backgroundColor: cleanColor(theme.card),
-                  opacity: theme.bgImage ? theme.overlayOpacity : 1, // Becomes the main color if no image
+                  // CSS opacity is opacity, pptx alpha is transparency: content slides show
+                  // (1 - overlayOpacity) wash so screen matches the exported file.
+                  opacity: theme.bgImage ? (slides[activeSlideIndex].type === 'title' ? theme.overlayOpacity : 1 - theme.overlayOpacity) : 1, // Becomes the main color if no image
                   zIndex: 0
                 }} />
 
@@ -966,35 +981,39 @@ function App() {
                   boxSizing: 'border-box'
                 }}>
                   {slides[activeSlideIndex].type === 'title' && (
-                    <div key={activeSlideIndex} className="slide-anim" style={{ textAlign: 'center', fontWeight: theme.bold ? '700' : '400', fontStyle: theme.italic ? 'italic' : 'normal', textTransform: theme.uppercase ? 'uppercase' : 'none', color: cleanColor(theme.titleColor) }}>
-                      <div style={{ fontSize: getDynamicFontSize(slides[activeSlideIndex].title, 'title'), letterSpacing: '-0.03em', lineHeight: '1.1', marginBottom: '1vw' }}>{slides[activeSlideIndex].title}</div>
-                      <div style={{ fontSize: getDynamicFontSize(slides[activeSlideIndex].subtitle, 'subtitle'), color: cleanColor(theme.subtitleColor), fontWeight: '600' }}>{slides[activeSlideIndex].subtitle}</div>
+                    <div key={activeSlideIndex} className="slide-anim" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontWeight: theme.bold ? '700' : '400', fontStyle: theme.italic ? 'italic' : 'normal', textTransform: theme.uppercase ? 'uppercase' : 'none' }}>
+                      <div style={{ backgroundColor: cleanColor(theme.band), padding: '1.2cqw 4cqw', color: '#FFFFFF', fontSize: getDynamicFontSize(slides[activeSlideIndex].subtitle, 'subtitle'), fontWeight: '700', lineHeight: '1.15' }}>
+                        {slides[activeSlideIndex].subtitle}
+                      </div>
+                      <div style={{ fontSize: getDynamicFontSize(slides[activeSlideIndex].title, 'title'), color: cleanColor(theme.titleColor), fontWeight: '700', letterSpacing: '-0.02em', lineHeight: '1.05', marginTop: '2.5cqw', textShadow: '2px 0 0 #FFFFFF, -2px 0 0 #FFFFFF, 0 2px 0 #FFFFFF, 0 -2px 0 #FFFFFF, 1px 1px 0 #FFFFFF, -1px -1px 0 #FFFFFF, 1px -1px 0 #FFFFFF, -1px 1px 0 #FFFFFF' }}>
+                        {slides[activeSlideIndex].title}
+                      </div>
                     </div>
                   )}
                   {slides[activeSlideIndex].type === 'content' && (
-                    <div key={activeSlideIndex} className="slide-anim" style={{ 
+                    <div key={activeSlideIndex} className="slide-anim" style={{
                       width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
-                      textTransform: theme.uppercase ? 'uppercase' : 'none', fontWeight: theme.bold ? '700' : '400', fontStyle: theme.italic ? 'italic' : 'normal', color: cleanColor(theme.text) 
+                      textTransform: theme.uppercase ? 'uppercase' : 'none', fontWeight: theme.bold ? '700' : '400', fontStyle: theme.italic ? 'italic' : 'normal', color: cleanColor(theme.text)
                     }}>
                       {slides[activeSlideIndex].mainTitle && (
-                        <div style={{ flex: '0 0 auto', textAlign: 'center', fontSize: '3.5cqw', color: cleanColor(theme.accent), padding: '0.5cqw 0', fontWeight: '800' }}>
+                        <div style={{ flex: '0 0 auto', textAlign: 'center', fontSize: '5.6cqw', color: theme.bgImage ? '#FFFFFF' : cleanColor(theme.accent), padding: '0.5cqw 0', fontWeight: '800' }}>
                           {slides[activeSlideIndex].mainTitle}
                         </div>
                       )}
                       <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', overflow: 'hidden', padding: '0 4%' }}>
-                        <div style={{ fontSize: getDynamicFontSize(slides[activeSlideIndex].title, 'content'), lineHeight: '1.2', letterSpacing: '-0.01em' }}>
+                        <div style={{ fontSize: getDynamicFontSize(slides[activeSlideIndex].title, slides[activeSlideIndex].mainTitle ? 'content' : 'header'), lineHeight: '1.2', letterSpacing: '-0.01em' }}>
                           {slides[activeSlideIndex].title}
                         </div>
                       </div>
                     </div>
                   )}
                   {slides[activeSlideIndex].type === 'scripture' && (
-                    <div key={activeSlideIndex} className="slide-anim" style={{ 
+                    <div key={activeSlideIndex} className="slide-anim" style={{
                       width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
-                      textTransform: theme.uppercase ? 'uppercase' : 'none', fontWeight: theme.bold ? '700' : '400', 
-                      fontStyle: theme.italic ? 'italic' : 'normal', color: cleanColor(theme.text) 
+                      textTransform: theme.uppercase ? 'uppercase' : 'none', fontWeight: theme.bold ? '700' : '400',
+                      fontStyle: theme.italic ? 'italic' : 'normal', color: cleanColor(theme.text)
                     }}>
-                      <div style={{ flex: '0 0 auto', textAlign: 'center', fontSize: '3.5cqw', color: cleanColor(theme.accent), padding: '0.5cqw 0', fontWeight: '800' }}>
+                      <div style={{ flex: '0 0 auto', textAlign: 'center', fontSize: '5cqw', color: cleanColor(theme.accent), padding: '0.5cqw 0', fontWeight: '800' }}>
                         {slides[activeSlideIndex].reference}
                       </div>
                       <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', overflow: 'hidden', padding: '0 4%' }}>
